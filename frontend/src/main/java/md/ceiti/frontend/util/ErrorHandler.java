@@ -1,18 +1,18 @@
 package md.ceiti.frontend.util;
 
-import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.AbstractSinglePropertyField;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.textfield.TextFieldBase;
 import md.ceiti.frontend.constant.ErrorCodes;
 import md.ceiti.frontend.exception.BadRequestException;
+import md.ceiti.frontend.exception.ExceptionResponse;
 import md.ceiti.frontend.exception.FrontendException;
 import md.ceiti.frontend.exception.ValidationException;
 import md.ceiti.frontend.view.ErrorView;
 import md.ceiti.frontend.view.ForbiddenView;
 import md.ceiti.frontend.view.LoginView;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Optional;
 
@@ -44,6 +44,20 @@ public class ErrorHandler {
         }
 
         NavigationUtils.setLocation(ErrorView.class);
+    }
+
+    public static void handle(HttpClientErrorException e) throws BadRequestException, ValidationException {
+        ExceptionResponse exceptionResponse = e.getResponseBodyAs(ExceptionResponse.class);
+
+        if (exceptionResponse != null && ErrorCodes.VALIDATION_ERROR.equals(exceptionResponse.getErrorCode())) {
+            throw new ValidationException(exceptionResponse.getValidationErrors());
+        }
+
+        throw new BadRequestException(
+                exceptionResponse != null && exceptionResponse.getErrorCode() != null
+                        ? exceptionResponse.getErrorCode()
+                        : ErrorCodes.TIMEOUT
+        );
     }
 
     public static void setErrors(FormLayout formLayout, ValidationException e) {

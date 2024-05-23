@@ -1,13 +1,9 @@
 package md.ceiti.backend.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import md.ceiti.backend.constant.ErrorCodes;
-import md.ceiti.backend.exception.ExceptionResponse;
 import md.ceiti.backend.model.Role;
 import md.ceiti.backend.service.AccountDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,24 +17,32 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import java.util.Date;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final AccountDetailsService accountDetailsService;
     private final JwtFilter jwtFilter;
 
+    @Qualifier("delegatedAuthenticationEntryPoint")
+    private final AuthenticationEntryPoint authEntryPoint;
+
+    @Autowired
+    public SecurityConfig(AccountDetailsService accountDetailsService,
+                          JwtFilter jwtFilter,
+                          AuthenticationEntryPoint authEntryPoint) {
+        this.accountDetailsService = accountDetailsService;
+        this.jwtFilter = jwtFilter;
+        this.authEntryPoint = authEntryPoint;
+    }
+
     @Bean
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
-        ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
-
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -70,25 +74,7 @@ public class SecurityConfig {
                 .httpBasic(Customizer.withDefaults());
 
         http.exceptionHandling(exception -> {
-            exception.authenticationEntryPoint((request, response, e) -> {
-                response.setContentType("application/json;charset=UTF-8");
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write(objectWriter.writeValueAsString(
-                        new ExceptionResponse("You aren't authenticated to make any requests",
-                                ErrorCodes.NOT_AUTHENTICATED,
-                                null,
-                                new Date().getTime())));
-            });
-
-            exception.accessDeniedHandler((request, response, e) -> {
-                response.setContentType("application/json;charset=UTF-8");
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write(objectWriter.writeValueAsString(
-                        new ExceptionResponse("You don't have access to this resource",
-                                ErrorCodes.ACCESS_DENIED,
-                                null,
-                                new Date().getTime())));
-            });
+            exception.authenticationEntryPoint(authEntryPoint);
         });
 
         http.authenticationProvider(authenticationProvider());

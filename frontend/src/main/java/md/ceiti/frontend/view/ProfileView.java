@@ -8,6 +8,7 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -30,6 +31,7 @@ import md.ceiti.frontend.service.ProfileService;
 import md.ceiti.frontend.util.ComponentUtils;
 import md.ceiti.frontend.util.ErrorHandler;
 import md.ceiti.frontend.util.NavigationUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 @Route(value = "profile")
 @PageTitle(value = "DM | Profile")
@@ -37,15 +39,13 @@ public class ProfileView extends NavigationUtilsView {
 
     private final ProfileService profileService;
     private final GenericMapper mapper;
-    private final BeanValidationBinder<ProfileUpdateRequest> binder = new BeanValidationBinder<>(ProfileUpdateRequest.class);
+    private final BeanValidationBinder<ProfileUpdateRequest> updateProfileBinder = new BeanValidationBinder<>(ProfileUpdateRequest.class);
     private final BeanValidationBinder<ProfileChangePasswordRequest> changePasswordBinder =
             new BeanValidationBinder<>(ProfileChangePasswordRequest.class);
     private final ProfileChangePasswordRequest profileChangePasswordRequest = new ProfileChangePasswordRequest();
     private Profile profile;
     private ProfileUpdateRequest profileUpdateRequest;
     private ProfileUpdateRequest backup;
-    private FormLayout profileForm;
-    private FormLayout changePasswordLayout;
 
     public ProfileView(ProfileService profileService, GenericMapper mapper) {
         this.profileService = profileService;
@@ -67,17 +67,29 @@ public class ProfileView extends NavigationUtilsView {
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.AROUND);
 
-        profileForm = getProfileForm();
+        Avatar profileImageAvatar = ComponentUtils.getAvatar(profile, true);
+        profileImageAvatar.getElement().addEventListener("click", event -> {
+            Notification.show("Yeesss");
+        });
+        FormLayout profileForm = getProfileForm();
         disableProfileForm(profileForm);
 
         Div container = new Div();
         container.setClassName("profile-container");
-        container.add(ComponentUtils.getAvatar(profile),
+        container.add(
+                profileImageAvatar,
                 profileForm,
                 getChangePasswordLayout(),
-                getButtonLayout());
+                getButtonLayout(profileForm)
+        );
 
         add(container);
+    }
+
+    private Dialog getChangeImageDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setModal(true);
+        return dialog;
     }
 
     private FormLayout getProfileForm() {
@@ -104,13 +116,13 @@ public class ProfileView extends NavigationUtilsView {
         email.setId(ProfileUpdateRequestFields.EMAIL.getId());
         email.setPlaceholder(ProfileUpdateRequestFields.EMAIL.getExample());
 
-        binder.bind(username, ProfileUpdateRequestFields.USERNAME.getId());
-        binder.bind(firstName, ProfileUpdateRequestFields.FIRST_NAME.getId());
-        binder.bind(lastName, ProfileUpdateRequestFields.LAST_NAME.getId());
-        binder.bind(phoneNumber, ProfileUpdateRequestFields.PHONE_NUMBER.getId());
-        binder.bind(email, ProfileUpdateRequestFields.EMAIL.getId());
-        binder.bind(birthDate, ProfileUpdateRequestFields.BIRTH_DATE.getId());
-        binder.setBean(profileUpdateRequest);
+        updateProfileBinder.bind(username, ProfileUpdateRequestFields.USERNAME.getId());
+        updateProfileBinder.bind(firstName, ProfileUpdateRequestFields.FIRST_NAME.getId());
+        updateProfileBinder.bind(lastName, ProfileUpdateRequestFields.LAST_NAME.getId());
+        updateProfileBinder.bind(phoneNumber, ProfileUpdateRequestFields.PHONE_NUMBER.getId());
+        updateProfileBinder.bind(email, ProfileUpdateRequestFields.EMAIL.getId());
+        updateProfileBinder.bind(birthDate, ProfileUpdateRequestFields.BIRTH_DATE.getId());
+        updateProfileBinder.setBean(profileUpdateRequest);
 
         FormLayout formLayout = new FormLayout();
         formLayout.add(username, firstName, lastName, birthDate, email, phoneNumber);
@@ -121,12 +133,19 @@ public class ProfileView extends NavigationUtilsView {
         return formLayout;
     }
 
-    private HorizontalLayout getButtonLayout() {
+    private HorizontalLayout getButtonLayout(FormLayout form) {
         Button back = new Button(I18n.BACK);
+        back.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
         Button edit = new Button(I18n.EDIT);
+        edit.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
         Button cancel = new Button(I18n.CANCEL);
+        cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         cancel.setVisible(false);
+
         Button save = new Button(I18n.SAVE);
+        save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         save.setVisible(false);
 
         back.addClickListener(event -> navigateToPreviousPage());
@@ -135,7 +154,7 @@ public class ProfileView extends NavigationUtilsView {
             edit.setVisible(false);
             cancel.setVisible(true);
             save.setVisible(true);
-            enableProfileForm(profileForm);
+            enableProfileForm(form);
             backup = profileUpdateRequest;
         });
         cancel.addClickListener(event -> {
@@ -143,12 +162,13 @@ public class ProfileView extends NavigationUtilsView {
             edit.setVisible(true);
             cancel.setVisible(false);
             save.setVisible(false);
-            disableProfileForm(profileForm);
+            disableProfileForm(form);
             profileUpdateRequest = backup;
-            binder.setBean(profileUpdateRequest);
+            updateProfileBinder.setBean(profileUpdateRequest);
         });
         save.addClickListener(event -> {
-            if (!binder.isValid()) {
+            if (!updateProfileBinder.isValid()) {
+                updateProfileBinder.validate();
                 return;
             }
 
@@ -161,7 +181,7 @@ public class ProfileView extends NavigationUtilsView {
                 }
             } catch (BadRequestException | ValidationException e) {
                 if (e instanceof ValidationException validationException) {
-                    ErrorHandler.setErrors(changePasswordLayout, validationException);
+                    ErrorHandler.setErrors(form, validationException);
                 } else {
                     ErrorHandler.handle((BadRequestException) e);
                 }
@@ -179,17 +199,9 @@ public class ProfileView extends NavigationUtilsView {
     }
 
     private HorizontalLayout getChangePasswordLayout() {
-        changePasswordLayout = getChangePasswordDialogFormLayout();
-
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(I18n.CHANGE_PASSWORD);
-        dialog.add(changePasswordLayout);
-        dialog.add(getChangePasswordDialogButtonLayout(dialog));
-        dialog.setCloseOnOutsideClick(false);
-
         Button button = new Button(I18n.CHANGE_PASSWORD);
         button.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        button.addClickListener(event -> dialog.open());
+        button.addClickListener(event -> getChangePasswordDialog(getChangePasswordForm()).open());
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         horizontalLayout.setSizeFull();
@@ -198,7 +210,17 @@ public class ProfileView extends NavigationUtilsView {
         return horizontalLayout;
     }
 
-    private FormLayout getChangePasswordDialogFormLayout() {
+    private Dialog getChangePasswordDialog(FormLayout form) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(I18n.CHANGE_PASSWORD);
+        dialog.add(form);
+        dialog.add(getChangePasswordDialogButtonLayout(dialog, form));
+        dialog.setCloseOnOutsideClick(false);
+
+        return dialog;
+    }
+
+    private FormLayout getChangePasswordForm() {
         PasswordField currentPassword = new PasswordField(ProfileChangePasswordRequestFields.CURRENT_PASSWORD.getLabel());
         PasswordField newPassword = new PasswordField(ProfileChangePasswordRequestFields.NEW_PASSWORD.getLabel());
         PasswordField confirmPassword = new PasswordField(ProfileChangePasswordRequestFields.CONFIRM_PASSWORD.getLabel());
@@ -240,13 +262,11 @@ public class ProfileView extends NavigationUtilsView {
         return formLayout;
     }
 
-    private HorizontalLayout getChangePasswordDialogButtonLayout(Dialog dialog) {
-        Button cancel = new Button(I18n.CANCEL);
-        cancel.addClickListener(event -> dialog.close());
-
-        Button change = new Button(I18n.CHANGE);
-        change.addClickListener(event -> {
+    private HorizontalLayout getChangePasswordDialogButtonLayout(Dialog dialog, FormLayout form) {
+        Pair<HorizontalLayout, Pair<Button, Button>> dialogButtonLayout = ComponentUtils.getGenericDialogButtonLayout(dialog);
+        dialogButtonLayout.getRight().getRight().addClickListener(event -> {
             if (!changePasswordBinder.isValid()) {
+                changePasswordBinder.validate();
                 return;
             }
 
@@ -256,7 +276,7 @@ public class ProfileView extends NavigationUtilsView {
                 dialog.close();
             } catch (BadRequestException | ValidationException e) {
                 if (e instanceof ValidationException validationException) {
-                    ErrorHandler.setErrors(changePasswordLayout, validationException);
+                    ErrorHandler.setErrors(form, validationException);
                 } else {
                     ErrorHandler.handle((BadRequestException) e);
                     dialog.close();
@@ -264,11 +284,7 @@ public class ProfileView extends NavigationUtilsView {
             }
         });
 
-        HorizontalLayout container = new HorizontalLayout();
-        container.setWidthFull();
-        container.setJustifyContentMode(JustifyContentMode.BETWEEN);
-        container.add(cancel, change);
-        return container;
+        return dialogButtonLayout.getLeft();
     }
 
     private void disableProfileForm(FormLayout profileForm) {

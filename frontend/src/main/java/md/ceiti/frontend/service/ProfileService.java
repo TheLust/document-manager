@@ -4,16 +4,13 @@ import lombok.RequiredArgsConstructor;
 import md.ceiti.frontend.dto.request.ProfileChangePasswordRequest;
 import md.ceiti.frontend.dto.request.ProfileUpdateRequest;
 import md.ceiti.frontend.dto.response.Profile;
-import md.ceiti.frontend.exception.BadRequestException;
-import md.ceiti.frontend.exception.ExceptionResponse;
 import md.ceiti.frontend.util.ApiUtils;
+import md.ceiti.frontend.util.ErrorHandler;
 import md.ceiti.frontend.util.JwtUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -30,7 +27,8 @@ public class ProfileService {
                             Profile.class)
                     .getBody();
         } catch (HttpClientErrorException e) {
-            throw new BadRequestException(Objects.requireNonNull(e.getResponseBodyAs(ExceptionResponse.class)).getErrorCode());
+            ErrorHandler.handle(e);
+            return null;
         }
     }
 
@@ -43,7 +41,8 @@ public class ProfileService {
                             Profile.class)
                     .getBody();
         } catch (HttpClientErrorException e) {
-            throw new BadRequestException(Objects.requireNonNull(e.getResponseBodyAs(ExceptionResponse.class)).getErrorCode());
+            ErrorHandler.handle(e);
+            return null;
         }
     }
 
@@ -56,8 +55,8 @@ public class ProfileService {
                             Profile.class)
                     .getBody();
         } catch (HttpClientErrorException e) {
-            ApiUtils.handleApiBadRequest(e);
-            throw new BadRequestException(Objects.requireNonNull(e.getResponseBodyAs(ExceptionResponse.class)).getErrorCode());
+            ErrorHandler.handle(e);
+            return null;
         }
     }
 
@@ -68,8 +67,7 @@ public class ProfileService {
                             ApiUtils.setHeader(profileChangePasswordRequest, JwtUtils.getJwtTokenFromCookie()),
                             Void.class);
         } catch (HttpClientErrorException e) {
-            ApiUtils.handleApiBadRequest(e);
-            throw new BadRequestException(Objects.requireNonNull(e.getResponseBodyAs(ExceptionResponse.class)).getErrorCode());
+            ErrorHandler.handle(e);
         }
     }
 }

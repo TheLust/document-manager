@@ -6,6 +6,9 @@ import md.ceiti.backend.exception.ExceptionResponse;
 import md.ceiti.backend.exception.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -13,6 +16,31 @@ import java.util.Date;
 
 @RestControllerAdvice
 public class ExceptionControllerAdvice {
+
+    @ExceptionHandler(AuthenticationException.class)
+    private ResponseEntity<ExceptionResponse> handleException(AuthenticationException e) {
+        return new ResponseEntity<>(
+                new ExceptionResponse(e.getMessage(), ErrorCodes.UNAUTHORIZED, null, new Date().getTime()),
+                HttpStatus.UNAUTHORIZED
+        );
+    }
+
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    private ResponseEntity<ExceptionResponse> handleException(InsufficientAuthenticationException e) {
+        return new ResponseEntity<>(
+                new ExceptionResponse(e.getMessage(), ErrorCodes.UNAUTHORIZED, null, new Date().getTime()),
+                HttpStatus.UNAUTHORIZED
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    private ResponseEntity<ExceptionResponse> handleException(AccessDeniedException e) {
+        return new ResponseEntity<>(
+                new ExceptionResponse(e.getMessage(), ErrorCodes.ACCESS_DENIED, null, new Date().getTime()),
+                HttpStatus.UNAUTHORIZED
+        );
+    }
+
     @ExceptionHandler(ApplicationException.class)
     private ResponseEntity<ExceptionResponse> handleException(ApplicationException e) {
         return new ResponseEntity<>(

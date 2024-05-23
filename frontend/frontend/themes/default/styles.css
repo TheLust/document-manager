@@ -19,12 +19,12 @@
     align-items: center;
 }
 
-.profile-avatar {
+.profile-container .profile-avatar {
     width: 150px;
     height: 150px;
 }
 
-.profile-avatar:hover {
+.profile-container .profile-avatar:hover {
     cursor: pointer;
 }
 
