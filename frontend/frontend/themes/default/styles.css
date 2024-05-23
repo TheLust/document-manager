@@ -1,0 +1,33 @@
+.profile-layout {
+    margin: 5px 5px 5px auto;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.profile-layout:hover {
+    background: #e7e7e7;
+}
+
+.profile-container {
+    background: #F5F5F5;
+    padding: 15px;
+    border-radius: 15px;
+    max-width: 400px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+}
+
+.profile-avatar:hover {
+    cursor: pointer;
+}
+
+.change-password-form-layout {
+    max-width: 400px;
+}
