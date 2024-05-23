@@ -8,11 +8,11 @@ import md.ceiti.frontend.util.ApiUtils;
 import md.ceiti.frontend.util.ErrorHandler;
 import md.ceiti.frontend.util.JwtUtils;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-@Component
+@Service
 @RequiredArgsConstructor
 public class ProfileService {
 

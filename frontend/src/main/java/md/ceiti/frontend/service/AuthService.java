@@ -1,19 +1,18 @@
 package md.ceiti.frontend.service;
 
 import lombok.RequiredArgsConstructor;
-import md.ceiti.frontend.dto.Role;
+import md.ceiti.frontend.dto.request.LoginRequest;
 import md.ceiti.frontend.exception.BadRequestException;
 import md.ceiti.frontend.exception.ExceptionResponse;
-import md.ceiti.frontend.dto.request.LoginRequest;
 import md.ceiti.frontend.util.ApiUtils;
 import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;
 
-@Component
+@Service
 @RequiredArgsConstructor
 public class AuthService {
 

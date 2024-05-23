@@ -6,7 +6,6 @@ import org.springframework.http.MediaType;
 
 public class ApiUtils {
 
-//    private static final String BASE_ENDPOINT = "http://192.168.100.102:8080/api/v1/";
     private static final String BASE_ENDPOINT = "http://localhost:8080/api/v1/";
 
     public static final String AUTH_ENDPOINT = BASE_ENDPOINT + "auth";

@@ -75,6 +75,9 @@ public class SecurityConfig {
 
         http.exceptionHandling(exception -> {
             exception.authenticationEntryPoint(authEntryPoint);
+            exception.accessDeniedHandler((request, response, accessDeniedException) -> {
+                throw accessDeniedException;
+            });
         });
 
         http.authenticationProvider(authenticationProvider());

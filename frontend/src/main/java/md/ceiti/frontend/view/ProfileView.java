@@ -8,15 +8,20 @@ import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.shared.Registration;
 import md.ceiti.frontend.constant.ConstraintViolationMessage;
 import md.ceiti.frontend.constant.I18n;
 import md.ceiti.frontend.constant.fields.ProfileChangePasswordRequestFields;
@@ -27,28 +32,34 @@ import md.ceiti.frontend.dto.response.Profile;
 import md.ceiti.frontend.exception.BadRequestException;
 import md.ceiti.frontend.exception.ValidationException;
 import md.ceiti.frontend.mapper.GenericMapper;
+import md.ceiti.frontend.service.ImageService;
 import md.ceiti.frontend.service.ProfileService;
 import md.ceiti.frontend.util.ComponentUtils;
 import md.ceiti.frontend.util.ErrorHandler;
 import md.ceiti.frontend.util.NavigationUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
 @Route(value = "profile")
 @PageTitle(value = "DM | Profile")
 public class ProfileView extends NavigationUtilsView {
 
     private final ProfileService profileService;
+    private final ImageService imageService;
     private final GenericMapper mapper;
-    private final BeanValidationBinder<ProfileUpdateRequest> updateProfileBinder = new BeanValidationBinder<>(ProfileUpdateRequest.class);
+    private final BeanValidationBinder<ProfileUpdateRequest> updateProfileBinder =
+            new BeanValidationBinder<>(ProfileUpdateRequest.class);
     private final BeanValidationBinder<ProfileChangePasswordRequest> changePasswordBinder =
             new BeanValidationBinder<>(ProfileChangePasswordRequest.class);
-    private final ProfileChangePasswordRequest profileChangePasswordRequest = new ProfileChangePasswordRequest();
     private Profile profile;
     private ProfileUpdateRequest profileUpdateRequest;
     private ProfileUpdateRequest backup;
 
-    public ProfileView(ProfileService profileService, GenericMapper mapper) {
+    public ProfileView(ProfileService profileService, ImageService imageService, GenericMapper mapper) {
         this.profileService = profileService;
+        this.imageService = imageService;
         this.mapper = mapper;
         try {
             profile = profileService.getProfile();
@@ -67,10 +78,9 @@ public class ProfileView extends NavigationUtilsView {
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.AROUND);
 
-        Avatar profileImageAvatar = ComponentUtils.getAvatar(profile, true);
-        profileImageAvatar.getElement().addEventListener("click", event -> {
-            Notification.show("Yeesss");
-        });
+        Avatar profileImageAvatar = ComponentUtils.getAvatar(profile, imageService, true);
+        profileImageAvatar.getElement().addEventListener("click", event -> getChangeImageDialog().open());
+
         FormLayout profileForm = getProfileForm();
         disableProfileForm(profileForm);
 
@@ -88,7 +98,67 @@ public class ProfileView extends NavigationUtilsView {
 
     private Dialog getChangeImageDialog() {
         Dialog dialog = new Dialog();
-        dialog.setModal(true);
+        dialog.setCloseOnOutsideClick(false);
+
+        Pair<HorizontalLayout, Pair<Button, Button>> buttonLayout = ComponentUtils.getGenericDialogButtonLayout(dialog);
+        FormLayout form = getChangeImageForm(dialog);
+        buttonLayout.getRight().getRight().addClickListener(event -> {
+           Notification.show("Save");
+        });
+
+        dialog.add(form, buttonLayout.getLeft());
+
+        return dialog;
+    }
+
+    private FormLayout getChangeImageForm(Dialog dialog) {
+        MemoryBuffer buffer = new MemoryBuffer();
+        Upload upload = new Upload(buffer);
+        upload.setDropAllowed(true);
+        upload.setMaxFiles(1);
+        upload.setAcceptedFileTypes(
+                "application/png",
+                "application/jpg",
+                "application/jpeg",
+                ".png",
+                ".jpg",
+                ".jpeg");
+        upload.addSucceededListener(succeededEvent -> {
+            try {
+                dialog.addClassName("hidden");
+                getPreviewImageDialog(dialog, buffer.getInputStream().readAllBytes()).open();
+            } catch (IOException e) {
+                Notification.show(I18n.IMAGE_READ_ERROR);
+                dialog.removeClassName("hidden");
+                upload.clearFileList();
+            }
+        });
+
+        FormLayout form = new FormLayout();
+        form.add(upload);
+
+        return form;
+    }
+
+    private Dialog getPreviewImageDialog(Dialog changeImageDialog, byte[] imageBytes) {
+        Dialog dialog = new Dialog();
+        dialog.setCloseOnOutsideClick(false);
+
+        Avatar avatar = new Avatar();
+        avatar.setClassName("profile-avatar");
+        avatar.getStyle().set("margin", "auto");
+        avatar.setImageResource(new StreamResource("image", () -> new ByteArrayInputStream(imageBytes)));
+
+        Pair<HorizontalLayout, Pair<Button, Button>> buttonLayout = ComponentUtils.getGenericDialogButtonLayout();
+
+        Button ok = new Button();
+        ok.addClickListener(event -> {
+            changeImageDialog.removeClassName("hidden");
+            dialog.close();
+        });
+
+        dialog.add(avatar, buttonLayout.getLeft());
+
         return dialog;
     }
 
@@ -221,6 +291,7 @@ public class ProfileView extends NavigationUtilsView {
     }
 
     private FormLayout getChangePasswordForm() {
+
         PasswordField currentPassword = new PasswordField(ProfileChangePasswordRequestFields.CURRENT_PASSWORD.getLabel());
         PasswordField newPassword = new PasswordField(ProfileChangePasswordRequestFields.NEW_PASSWORD.getLabel());
         PasswordField confirmPassword = new PasswordField(ProfileChangePasswordRequestFields.CONFIRM_PASSWORD.getLabel());
@@ -243,7 +314,6 @@ public class ProfileView extends NavigationUtilsView {
                         .withValidator(value -> value.equals(newPassword.getValue()) || newPassword.getValue().isBlank(),
                                 ConstraintViolationMessage.PASSWORDS_NOT_MATCH)
                         .bind(ProfileChangePasswordRequestFields.CONFIRM_PASSWORD.getId());
-        changePasswordBinder.setBean(profileChangePasswordRequest);
 
         newPassword.addValueChangeListener(event -> {
             newPasswordBinding.validate();
@@ -262,8 +332,16 @@ public class ProfileView extends NavigationUtilsView {
         return formLayout;
     }
 
-    private HorizontalLayout getChangePasswordDialogButtonLayout(Dialog dialog, FormLayout form) {
-        Pair<HorizontalLayout, Pair<Button, Button>> dialogButtonLayout = ComponentUtils.getGenericDialogButtonLayout(dialog);
+    private HorizontalLayout getChangePasswordDialogButtonLayout(Dialog dialog,
+                                                                 FormLayout form) {
+        ProfileChangePasswordRequest request = new ProfileChangePasswordRequest();
+        changePasswordBinder.setBean(request);
+
+        Pair<HorizontalLayout, Pair<Button, Button>> dialogButtonLayout = ComponentUtils.getGenericDialogButtonLayout(
+                dialog,
+                request,
+                ProfileChangePasswordRequest::new
+        );
         dialogButtonLayout.getRight().getRight().addClickListener(event -> {
             if (!changePasswordBinder.isValid()) {
                 changePasswordBinder.validate();
@@ -271,7 +349,7 @@ public class ProfileView extends NavigationUtilsView {
             }
 
             try {
-                profileService.changePassword(profileChangePasswordRequest);
+                profileService.changePassword(request);
                 NavigationUtils.navigateTo(LoginView.class);
                 dialog.close();
             } catch (BadRequestException | ValidationException e) {

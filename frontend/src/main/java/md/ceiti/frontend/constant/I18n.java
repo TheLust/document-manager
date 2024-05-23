@@ -18,4 +18,5 @@ public interface I18n {
 
     String SIGN_OUT_HEADER = "Exit";
     String SIGN_OUT_TEXT = "Are you sure you want to sign out?";
+    String IMAGE_READ_ERROR = "Cannot read the image, please try another one";
 }

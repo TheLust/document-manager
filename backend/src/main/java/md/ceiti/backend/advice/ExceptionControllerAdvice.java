@@ -37,7 +37,7 @@ public class ExceptionControllerAdvice {
     private ResponseEntity<ExceptionResponse> handleException(AccessDeniedException e) {
         return new ResponseEntity<>(
                 new ExceptionResponse(e.getMessage(), ErrorCodes.ACCESS_DENIED, null, new Date().getTime()),
-                HttpStatus.UNAUTHORIZED
+                HttpStatus.FORBIDDEN
         );
     }
 

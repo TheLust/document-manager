@@ -13,6 +13,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import md.ceiti.frontend.constant.I18n;
 import md.ceiti.frontend.dto.response.Profile;
 import md.ceiti.frontend.exception.BadRequestException;
+import md.ceiti.frontend.service.ImageService;
 import md.ceiti.frontend.service.ProfileService;
 import md.ceiti.frontend.util.ComponentUtils;
 import md.ceiti.frontend.util.ErrorHandler;
@@ -25,10 +26,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class BasicLayout extends AppLayout {
 
+    private final ImageService imageService;
     private Profile profile;
 
     @Autowired
-    public BasicLayout(ProfileService profileService) {
+    public BasicLayout(ProfileService profileService, ImageService imageService) {
+        this.imageService = imageService;
+
         try {
             profile = profileService.getProfile();
         } catch (BadRequestException e) {
@@ -51,7 +55,7 @@ public class BasicLayout extends AppLayout {
     }
 
     private HorizontalLayout getProfileLayout() {
-        Avatar avatar = ComponentUtils.getAvatar(profile);
+        Avatar avatar = ComponentUtils.getAvatar(profile, imageService);
         H1 username = new H1(profile.getUsername());
         username.getStyle()
                 .set("font-size", "var(--lumo-font-size-l)")
@@ -76,9 +80,7 @@ public class BasicLayout extends AppLayout {
                 I18n.SIGN_OUT_HEADER,
                 I18n.SIGN_OUT_TEXT
         );
-        signOutConfirmDialog.setConfirmButton(I18n.SIGN_OUT, confirmEvent -> {
-            NavigationUtils.navigateTo(LoginView.class);
-        });
+        signOutConfirmDialog.setConfirmButton(I18n.SIGN_OUT, confirmEvent -> NavigationUtils.navigateTo(LoginView.class));
         MenuItem signOutMenuItem = contextMenu.addItem(I18n.SIGN_OUT);
         signOutMenuItem.addClickListener(menuItemClickEvent -> signOutConfirmDialog.open());
         signOutMenuItem.getStyle().set("color", "red");

@@ -5,12 +5,13 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import md.ceiti.frontend.service.ImageService;
 import md.ceiti.frontend.service.ProfileService;
 
 public class ApplicationLayout extends BasicLayout {
 
-    public ApplicationLayout(ProfileService profileService) {
-        super(profileService);
+    public ApplicationLayout(ProfileService profileService, ImageService imageService) {
+        super(profileService, imageService);
         buildLayout();
     }
 

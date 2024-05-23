@@ -19,15 +19,19 @@
     align-items: center;
 }
 
-.profile-container .profile-avatar {
+.profile-avatar {
     width: 150px;
     height: 150px;
 }
 
-.profile-container .profile-avatar:hover {
+.profile-avatar:hover {
     cursor: pointer;
 }
 
 .change-password-form-layout {
     max-width: 400px;
+}
+
+.hidden {
+    display: none !important;
 }
