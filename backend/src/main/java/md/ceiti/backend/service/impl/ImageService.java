@@ -30,6 +30,12 @@ public class ImageService {
     }
 
     public byte[] getImage(Image image) {
+        if (image == null) {
+            throw new ApplicationException(
+                    "Cannot get the image because the profile does not have one. Check frontend",
+                    ErrorCodes.INTERNAL_ERROR);
+        }
+
         try {
             return Files.readAllBytes(getFile(image).toPath());
         } catch (IOException e) {
@@ -45,7 +51,7 @@ public class ImageService {
         image.setExtension(FilenameUtils.getExtension(imageFile.getOriginalFilename()));
         image = imageRepository.save(image);
 
-        File file = getFile(image);
+        File file = getFile(image, false);
         try (OutputStream outputStream = new FileOutputStream(file)) {
             outputStream.write(imageFile.getBytes());
         } catch (IOException e) {
@@ -54,20 +60,6 @@ public class ImageService {
                     ErrorCodes.INTERNAL_ERROR);
         }
 
-        return image;
-    }
-
-    @Transactional
-    public Image update(Image presentEntity, MultipartFile imageFile) {
-        Image image = insert(imageFile); //first create to check if valid, after delete the present one
-        try {
-            delete(presentEntity);
-        } catch (ApplicationException e) {
-            delete(image);
-            throw new ApplicationException(
-                    String.format("Could not update file server local storage, exception=[%s]", e.getMessage()),
-                    ErrorCodes.INTERNAL_ERROR);
-        }
         return image;
     }
 
@@ -84,10 +76,14 @@ public class ImageService {
     }
 
     private File getFile(Image image) {
+        return getFile(image, true);
+    }
+
+    private File getFile(Image image, boolean useCheck) {
         String FILE_PATH = "files/%s.%s";
         File file = new File(String.format(FILE_PATH, image.getId(), image.getExtension()));
 
-        if (!file.exists()) {
+        if (!file.exists() && useCheck) {
             throw new ApplicationException(
                     "Could not read file from server local storage",
                     ErrorCodes.INTERNAL_ERROR);

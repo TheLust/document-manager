@@ -4,6 +4,8 @@ public interface I18n {
 
     // Functional
     String DATE_FORMAT = "dd/MM/yyyy";
+    String DEFAULT_EDIT_IMAGE = "https://cdn-icons-png.flaticon.com/512/6065/6065488.png";
+    String DEFAULT_DELETE_IMAGE = "https://png.pngitem.com/pimgs/s/504-5043040_close-cross-icon-svg-hd-png-download.png";
 
     //Component
     String BACK = "Back";

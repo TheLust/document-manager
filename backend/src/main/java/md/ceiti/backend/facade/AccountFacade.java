@@ -14,15 +14,20 @@ import md.ceiti.backend.service.impl.ImageService;
 import md.ceiti.backend.service.impl.InstitutionService;
 import md.ceiti.backend.validator.AccountValidator;
 import md.ceiti.backend.validator.ProfileChangePasswordRequestValidator;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class AccountFacade {
 
     private final AccountService accountService;
+    private final ImageService imageService;
     private final InstitutionService institutionService;
     private final AccountValidator accountValidator;
     private final ProfileChangePasswordRequestValidator profileChangePasswordRequestValidator;
@@ -60,6 +65,26 @@ public class AccountFacade {
         account.setPassword(passwordEncoder.encode(profileChangePasswordRequest.getNewPassword()));
 
         accountService.update(account, account);
+    }
+
+    public byte[] getImage(AccountDetails accountDetails) {
+        return imageService.getImage(accountDetails.getAccount().getImage());
+    }
+
+    public Profile changeImage(AccountDetails accountDetails,
+                               MultipartFile imageResource) {
+        Account account = accountDetails.getAccount();
+        UUID originalImageUuid = account.getImage().getId();
+        Account updatedAccount = new Account();
+        BeanUtils.copyProperties(account, updatedAccount);
+
+        updatedAccount.setImage(imageService.insert(imageResource));
+        updatedAccount = accountService.update(account, updatedAccount);
+        if (account.getImage() != null) {
+            imageService.deleteById(originalImageUuid);
+        }
+
+        return mapper.toResponse(updatedAccount);
     }
 
     public Account insert(Long institutionId,

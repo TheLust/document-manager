@@ -11,8 +11,8 @@ import com.vaadin.flow.server.AbstractStreamResource;
 import com.vaadin.flow.server.StreamResource;
 import md.ceiti.frontend.constant.I18n;
 import md.ceiti.frontend.dto.Image;
-import md.ceiti.frontend.dto.response.Profile;
 import md.ceiti.frontend.exception.BadRequestException;
+import md.ceiti.frontend.exception.FrontendException;
 import md.ceiti.frontend.service.ImageService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
@@ -23,25 +23,113 @@ import java.util.function.Supplier;
 
 public class ComponentUtils {
 
-    public static Avatar getAvatar(Profile profile, ImageService imageService) {
-        return getAvatar(profile, imageService, false);
+    public static Avatar getAvatar(ImageService imageService, Image image) {
+        return getAvatar(getProfileImageStreamResource(imageService, image));
     }
 
-    public static Avatar getAvatar(Profile profile, ImageService imageService, boolean editable) {
-        Avatar avatar = new Avatar();
-        AbstractStreamResource image = getProfileImageStreamResource(imageService, profile.getImage());
-        avatar.setImageResource(image);
+    public static Avatar getAvatar(ImageService imageService,
+                                   Image image,
+                                   String hoverImageUrl) {
+        return getAvatar(getProfileImageStreamResource(imageService, image), hoverImageUrl);
+    }
 
-        if (editable) {
-            avatar.setClassName("profile-avatar");
-            avatar.getElement().addEventListener("mouseover",
-                    event -> avatar.setImage("https://cdn-icons-png.flaticon.com/512/6065/6065488.png"));
-            avatar.getElement().addEventListener("mouseout",
-                    event -> avatar.setImageResource(image));
-            avatar.getElement().addEventListener("click",
-                    event -> avatar.setImageResource(image));
-        }
+    public static Avatar getAvatar(ImageService imageService,
+                                   Image image,
+                                   AbstractStreamResource hoverImageResource) {
+        return getAvatar(getProfileImageStreamResource(imageService, image), hoverImageResource);
+    }
+
+    public static Avatar getAvatar(ImageService imageService,
+                                   Image image,
+                                   String hoverImageUrl,
+                                   Runnable clickEventAction) {
+        return getAvatar(getProfileImageStreamResource(imageService, image), hoverImageUrl, clickEventAction);
+    }
+
+    public static Avatar getAvatar(AbstractStreamResource image,
+                                   String hoverImageUrl,
+                                   Runnable clickEventAction) {
+        Avatar avatar = getAvatar(image, hoverImageUrl);
+        avatar.getElement().addEventListener("click", event -> {
+            clickEventAction.run();
+        });
+
         return avatar;
+    }
+
+    public static Avatar getAvatar(ImageService imageService,
+                                   Image image,
+                                   AbstractStreamResource hoverImageResource,
+                                   Runnable clickEventAction) {
+        return getAvatar(getProfileImageStreamResource(imageService, image), hoverImageResource, clickEventAction);
+    }
+
+    public static Avatar getAvatar(AbstractStreamResource image,
+                                   AbstractStreamResource hoverImageResource,
+                                   Runnable clickEventAction) {
+        Avatar avatar = getAvatar(image, hoverImageResource);
+        avatar.getElement().addEventListener("click", event -> {
+            clickEventAction.run();
+        });
+
+        return avatar;
+    }
+
+    public static Avatar getAvatar(AbstractStreamResource imageResource,
+                                    String hoverImageUrl) {
+        Avatar avatar = getAvatar(imageResource);
+
+        if (hoverImageUrl != null) {
+            avatar.getElement().addEventListener("mouseover",
+                    event -> avatar.setImage(hoverImageUrl));
+            avatar.getElement().addEventListener("mouseout",
+                    event -> avatar.setImageResource(imageResource));
+            avatar.getElement().addEventListener("click",
+                    event -> avatar.setImageResource(imageResource));
+        } else {
+            throw new FrontendException("Hover image resource cannot be null");
+        }
+
+        return avatar;
+    }
+
+    private static Avatar getAvatar(AbstractStreamResource imageResource,
+                                    AbstractStreamResource hoverImageResource) {
+        Avatar avatar = getAvatar(imageResource);
+
+        if (hoverImageResource != null) {
+            avatar.getElement().addEventListener("mouseover",
+                    event -> avatar.setImageResource(hoverImageResource));
+            avatar.getElement().addEventListener("mouseout",
+                    event -> avatar.setImageResource(imageResource));
+            avatar.getElement().addEventListener("click",
+                    event -> avatar.setImageResource(imageResource));
+        } else {
+            throw new FrontendException("Hover image resource cannot be null");
+        }
+
+        return avatar;
+    }
+
+    public static Avatar getAvatar(AbstractStreamResource imageResource) {
+        Avatar avatar = new Avatar();
+        avatar.setImageResource(imageResource);
+
+        return avatar;
+    }
+
+    private static AbstractStreamResource getProfileImageStreamResource(ImageService imageService,
+                                                                        Image image) {
+        UUID uuid = image != null ? image.getId() : null;
+        if (uuid != null) {
+            try {
+                return new StreamResource(uuid.toString(), () -> new ByteArrayInputStream(imageService.getImage(uuid)));
+            } catch (BadRequestException ignored) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     public static ConfirmDialog getGenericConfirmDialog(String header, String text) {
@@ -89,26 +177,4 @@ public class ComponentUtils {
 
         return buttonLayout;
     }
-
-    private static AbstractStreamResource getProfileImageStreamResource(ImageService imageService, Image image) {
-        UUID uuid = image != null ? image.getId() : null;
-        if (uuid != null) {
-            try {
-                return new StreamResource(uuid.toString(), () -> new ByteArrayInputStream(imageService.getImage(uuid)));
-            } catch (BadRequestException ignored) {
-                return null;
-            }
-        }
-
-        return null;
-    }
-
-    private static String getProfileImageEndpoint(Image image) {
-        if (image == null) {
-            return null;
-        }
-
-        return ApiUtils.IMAGES_ENDPOINT + "?uuid=" + image.getId();
-    }
-
 }

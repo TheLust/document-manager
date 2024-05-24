@@ -26,13 +26,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class BasicLayout extends AppLayout {
 
-    private final ImageService imageService;
-    private Profile profile;
+    private final ProfileService profileService;
 
     @Autowired
-    public BasicLayout(ProfileService profileService, ImageService imageService) {
-        this.imageService = imageService;
+    public BasicLayout(ProfileService profileService) {
+        this.profileService = profileService;
 
+        Profile profile;
         try {
             profile = profileService.getProfile();
         } catch (BadRequestException e) {
@@ -40,10 +40,10 @@ public class BasicLayout extends AppLayout {
             return;
         }
 
-        buildLayout();
+        buildLayout(profile);
     }
 
-    private void buildLayout() {
+    private void buildLayout(Profile profile) {
         DrawerToggle toggle = new DrawerToggle();
 
         H1 title = new H1("Application");
@@ -51,11 +51,11 @@ public class BasicLayout extends AppLayout {
                 .set("font-size", "var(--lumo-font-size-l)")
                 .set("margin", "0");
 
-        addToNavbar(toggle, title, getProfileLayout());
+        addToNavbar(toggle, title, getProfileLayout(profile));
     }
 
-    private HorizontalLayout getProfileLayout() {
-        Avatar avatar = ComponentUtils.getAvatar(profile, imageService);
+    private HorizontalLayout getProfileLayout(Profile profile) {
+        Avatar avatar = ComponentUtils.getAvatar(profileService.getImage());
         H1 username = new H1(profile.getUsername());
         username.getStyle()
                 .set("font-size", "var(--lumo-font-size-l)")

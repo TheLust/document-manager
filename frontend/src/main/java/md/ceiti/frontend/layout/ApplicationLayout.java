@@ -10,8 +10,8 @@ import md.ceiti.frontend.service.ProfileService;
 
 public class ApplicationLayout extends BasicLayout {
 
-    public ApplicationLayout(ProfileService profileService, ImageService imageService) {
-        super(profileService, imageService);
+    public ApplicationLayout(ProfileService profileService) {
+        super(profileService);
         buildLayout();
     }
 
