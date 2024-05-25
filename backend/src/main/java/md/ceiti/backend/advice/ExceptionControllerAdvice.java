@@ -17,30 +17,6 @@ import java.util.Date;
 @RestControllerAdvice
 public class ExceptionControllerAdvice {
 
-    @ExceptionHandler(AuthenticationException.class)
-    private ResponseEntity<ExceptionResponse> handleException(AuthenticationException e) {
-        return new ResponseEntity<>(
-                new ExceptionResponse(e.getMessage(), ErrorCodes.UNAUTHORIZED, null, new Date().getTime()),
-                HttpStatus.UNAUTHORIZED
-        );
-    }
-
-    @ExceptionHandler(InsufficientAuthenticationException.class)
-    private ResponseEntity<ExceptionResponse> handleException(InsufficientAuthenticationException e) {
-        return new ResponseEntity<>(
-                new ExceptionResponse(e.getMessage(), ErrorCodes.UNAUTHORIZED, null, new Date().getTime()),
-                HttpStatus.UNAUTHORIZED
-        );
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    private ResponseEntity<ExceptionResponse> handleException(AccessDeniedException e) {
-        return new ResponseEntity<>(
-                new ExceptionResponse(e.getMessage(), ErrorCodes.ACCESS_DENIED, null, new Date().getTime()),
-                HttpStatus.FORBIDDEN
-        );
-    }
-
     @ExceptionHandler(ApplicationException.class)
     private ResponseEntity<ExceptionResponse> handleException(ApplicationException e) {
         return new ResponseEntity<>(

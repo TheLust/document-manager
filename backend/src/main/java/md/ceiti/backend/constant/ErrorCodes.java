@@ -7,4 +7,5 @@ public interface ErrorCodes {
     String INTERNAL_ERROR = "INTERNAL_ERROR";
     String BAD_CREDENTIALS = "BAD_CREDENTIALS";
     String VALIDATION_ERROR = "VALIDATION_ERROR";
+    String BAD_REQUEST = "BAD_REQUEST";
 }

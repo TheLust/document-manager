@@ -2,7 +2,6 @@ package md.ceiti.frontend.layout;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
-import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.contextmenu.MenuItem;
@@ -10,10 +9,11 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.server.StreamResource;
+import md.ceiti.frontend.component.ProfileAvatar;
 import md.ceiti.frontend.constant.I18n;
 import md.ceiti.frontend.dto.response.Profile;
 import md.ceiti.frontend.exception.BadRequestException;
-import md.ceiti.frontend.service.ImageService;
 import md.ceiti.frontend.service.ProfileService;
 import md.ceiti.frontend.util.ComponentUtils;
 import md.ceiti.frontend.util.ErrorHandler;
@@ -26,36 +26,36 @@ import org.springframework.stereotype.Component;
 @Component
 public class BasicLayout extends AppLayout {
 
-    private final ProfileService profileService;
-
     @Autowired
     public BasicLayout(ProfileService profileService) {
-        this.profileService = profileService;
-
         Profile profile;
+        StreamResource image = null;
         try {
             profile = profileService.getProfile();
+            if (profile.getImage() != null) {
+                image = profileService.getImage();
+            }
         } catch (BadRequestException e) {
             ErrorHandler.handle(e);
             return;
         }
 
-        buildLayout(profile);
+        buildLayout(profile, image);
     }
 
-    private void buildLayout(Profile profile) {
+    private void buildLayout(Profile profile, StreamResource image) {
         DrawerToggle toggle = new DrawerToggle();
 
-        H1 title = new H1("Application");
+        H1 title = new H1("Document Manager");
         title.getStyle()
                 .set("font-size", "var(--lumo-font-size-l)")
                 .set("margin", "0");
 
-        addToNavbar(toggle, title, getProfileLayout(profile));
+        addToNavbar(toggle, title, getProfileLayout(profile, image));
     }
 
-    private HorizontalLayout getProfileLayout(Profile profile) {
-        Avatar avatar = ComponentUtils.getAvatar(profileService.getImage());
+    private HorizontalLayout getProfileLayout(Profile profile, StreamResource image) {
+        ProfileAvatar profileAvatar = new ProfileAvatar(image);
         H1 username = new H1(profile.getUsername());
         username.getStyle()
                 .set("font-size", "var(--lumo-font-size-l)")
@@ -64,7 +64,7 @@ public class BasicLayout extends AppLayout {
         HorizontalLayout container = new HorizontalLayout();
         container.setClassName("profile-layout");
         container.setAlignItems(FlexComponent.Alignment.CENTER);
-        container.add(username, avatar);
+        container.add(username, profileAvatar);
 
         ContextMenu contextMenu = new ContextMenu();
         contextMenu.setTarget(container);

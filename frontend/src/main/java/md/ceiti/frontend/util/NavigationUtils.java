@@ -4,7 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.RouteConfiguration;
 import md.ceiti.frontend.dto.response.Profile;
-import md.ceiti.frontend.view.ApplicationView;
+import md.ceiti.frontend.view.CmsView;
 import md.ceiti.frontend.view.InstitutionView;
 
 public class NavigationUtils {
@@ -14,8 +14,8 @@ public class NavigationUtils {
     public static void navigateToHomePage(Profile profile) {
         switch (profile.getRole()) {
             case MASTER ->  {
-                CookiesManager.set("homePage", RouteConfiguration.forSessionScope().getUrl(ApplicationView.class));
-                setLocation(ApplicationView.class);
+                CookiesManager.set("homePage", RouteConfiguration.forSessionScope().getUrl(CmsView.class));
+                setLocation(CmsView.class);
             }
             case INSTITUTION_MASTER, INSTITUTION_USER -> {
                 CookiesManager.set("homePage", RouteConfiguration.forSessionScope().getUrl(InstitutionView.class));

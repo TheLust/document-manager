@@ -1,7 +1,6 @@
 package md.ceiti.frontend.view;
 
 import com.vaadin.flow.component.HasValue;
-import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -21,8 +20,10 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
+import md.ceiti.frontend.component.ProfileAvatar;
 import md.ceiti.frontend.constant.ConstraintViolationMessage;
 import md.ceiti.frontend.constant.I18n;
+import md.ceiti.frontend.constant.Style;
 import md.ceiti.frontend.constant.fields.ProfileChangePasswordRequestFields;
 import md.ceiti.frontend.constant.fields.ProfileUpdateRequestFields;
 import md.ceiti.frontend.dto.request.ProfileChangePasswordRequest;
@@ -34,10 +35,11 @@ import md.ceiti.frontend.mapper.GenericMapper;
 import md.ceiti.frontend.service.ProfileService;
 import md.ceiti.frontend.util.ComponentUtils;
 import md.ceiti.frontend.util.ErrorHandler;
+import md.ceiti.frontend.util.IOUtils;
 import md.ceiti.frontend.util.NavigationUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.core.io.FileSystemResource;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -52,36 +54,38 @@ public class ProfileView extends NavigationUtilsView {
     private final BeanValidationBinder<ProfileChangePasswordRequest> changePasswordBinder =
             new BeanValidationBinder<>(ProfileChangePasswordRequest.class);
     private Profile profile;
-    private StreamResource profileImage;
     private ProfileUpdateRequest profileUpdateRequest;
     private ProfileUpdateRequest backup;
 
     public ProfileView(ProfileService profileService, GenericMapper mapper) {
         this.profileService = profileService;
         this.mapper = mapper;
-
+        StreamResource profileImageResource = null;
         try {
             profile = profileService.getProfile();
+            if (profile.getImage() != null) {
+                profileImageResource = profileService.getImage();
+            }
             profileUpdateRequest = mapper.toUpdateRequest(profile);
         } catch (BadRequestException e) {
             ErrorHandler.handle(e);
             return;
         }
 
-        buildView();
+        buildView(profileImageResource);
     }
 
-    private void buildView() {
+    private void buildView(StreamResource profileImageResource) {
         addClassName("login-view");
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.AROUND);
 
-        Avatar profileImageAvatar = ComponentUtils.getAvatar(
-                profileImage,
-                I18n.DEFAULT_EDIT_IMAGE,
-                () -> getChangeImageDialog().open());
-        profileImageAvatar.addClassName("profile-avatar");
+        ProfileAvatar profileAvatar = new ProfileAvatar(
+                profileImageResource,
+                I18n.DEFAULT_EDIT_IMAGE);
+        profileAvatar.setActionOnClick(() -> getChangeImageDialog(profileAvatar).open());
+        profileAvatar.addClassName(Style.LARGE);
 
         FormLayout profileForm = getProfileForm();
         disableProfileForm(profileForm);
@@ -89,7 +93,7 @@ public class ProfileView extends NavigationUtilsView {
         Div container = new Div();
         container.setClassName("profile-container");
         container.add(
-                profileImageAvatar,
+                profileAvatar,
                 profileForm,
                 getChangePasswordLayout(),
                 getProfileButtonLayout(profileForm)
@@ -98,11 +102,11 @@ public class ProfileView extends NavigationUtilsView {
         add(container);
     }
 
-    private Dialog getChangeImageDialog() {
+    private Dialog getChangeImageDialog(ProfileAvatar profileAvatar) {
         Dialog dialog = new Dialog();
         dialog.setCloseOnOutsideClick(false);
 
-        AtomicReference<StreamResource> imageResource = new AtomicReference<>();
+        AtomicReference<FileSystemResource> imageResource = new AtomicReference<>();
         AtomicReference<Runnable> cancelAction = new AtomicReference<>();
         cancelAction.set(dialog::close);
 
@@ -117,7 +121,9 @@ public class ProfileView extends NavigationUtilsView {
             }
 
             try {
-                profile = profileService.changeImage();
+                profile = profileService.changeImage(imageResource.get());
+                profileAvatar.setStreamResource(profileService.getImage());
+                dialog.close();
             } catch (BadRequestException e) {
                 ErrorHandler.handle(e);
             }
@@ -135,7 +141,7 @@ public class ProfileView extends NavigationUtilsView {
     }
 
     private VerticalLayout getChangeImageLayout(Dialog dialog,
-                                                AtomicReference<StreamResource> imageResource,
+                                                AtomicReference<FileSystemResource> imageResource,
                                                 AtomicReference<Runnable> cancelAction,
                                                 Runnable hideChangeButton,
                                                 Runnable showChangeButton) {
@@ -154,21 +160,26 @@ public class ProfileView extends NavigationUtilsView {
 
         VerticalLayout layout = new VerticalLayout();
         layout.setAlignItems(Alignment.CENTER);
-        layout.setMinWidth("350px");
+        layout.setMinWidth("300px");
         layout.add(upload);
 
         upload.addSucceededListener(succeededEvent -> {
             try {
                 byte[] imageBytes = buffer.getInputStream().readAllBytes();
-                imageResource.set(
-                        new StreamResource(succeededEvent.getFileName(), () -> new ByteArrayInputStream(imageBytes)));
-                Avatar avatar = ComponentUtils.getAvatar(imageResource.get());
-                avatar.setClassName("profile-avatar");
+                FileSystemResource fileSystemResource = IOUtils.toFileSystemResource(
+                        succeededEvent.getFileName(),
+                        imageBytes);
+                imageResource.set(fileSystemResource);
+
+                ProfileAvatar profileAvatar = new ProfileAvatar(
+                        IOUtils.toStreamResource(succeededEvent.getFileName(), imageBytes)
+                );
+                profileAvatar.setClassName(Style.LARGE);
                 upload.setVisible(false);
                 showChangeButton.run();
 
                 cancelAction.set(() -> {
-                    layout.remove(avatar);
+                    layout.remove(profileAvatar);
                     upload.setVisible(true);
                     upload.clearFileList();
                     hideChangeButton.run();
@@ -176,7 +187,7 @@ public class ProfileView extends NavigationUtilsView {
                     cancelAction.set(dialog::close);
                 });
 
-                layout.add(avatar);
+                layout.add(profileAvatar);
             } catch (IOException e) {
                 Notification.show(I18n.IMAGE_READ_ERROR);
                 upload.setVisible(true);

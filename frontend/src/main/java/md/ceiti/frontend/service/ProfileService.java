@@ -8,8 +8,14 @@ import md.ceiti.frontend.dto.response.Profile;
 import md.ceiti.frontend.util.ApiUtils;
 import md.ceiti.frontend.util.ErrorHandler;
 import md.ceiti.frontend.util.JwtUtils;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -92,7 +98,27 @@ public class ProfileService {
         }
     }
 
-    public Profile changeImage() {
-        return new Profile();
+    public Profile changeImage(FileSystemResource imageResource) {
+        try {
+            MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+            bodyBuilder.part("image", imageResource, MediaType.APPLICATION_OCTET_STREAM);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.setBearerAuth(JwtUtils.getJwtTokenFromCookie());
+
+            HttpEntity<MultiValueMap<String, HttpEntity<?>>> requestEntity =
+                    new HttpEntity<>(bodyBuilder.build(), headers);
+
+            return restTemplate.exchange(
+                            ApiUtils.PROFILE_ENDPOINT + "/change-image",
+                            HttpMethod.POST,
+                            requestEntity,
+                            Profile.class)
+                    .getBody();
+        } catch (HttpClientErrorException e) {
+            ErrorHandler.handle(e);
+            return null;
+        }
     }
 }

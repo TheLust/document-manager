@@ -7,6 +7,7 @@ import md.ceiti.backend.dto.request.RegisterRequest;
 import md.ceiti.backend.dto.response.Profile;
 import md.ceiti.backend.mapper.GenericMapper;
 import md.ceiti.backend.model.Account;
+import md.ceiti.backend.model.Image;
 import md.ceiti.backend.model.Role;
 import md.ceiti.backend.security.AccountDetails;
 import md.ceiti.backend.service.impl.AccountService;
@@ -74,17 +75,17 @@ public class AccountFacade {
     public Profile changeImage(AccountDetails accountDetails,
                                MultipartFile imageResource) {
         Account account = accountDetails.getAccount();
-        UUID originalImageUuid = account.getImage().getId();
-        Account updatedAccount = new Account();
-        BeanUtils.copyProperties(account, updatedAccount);
+        boolean hasImage = account.getImage() != null;
+        UUID originalImageUuid = account.getImage() != null ? account.getImage().getId() : UUID.randomUUID();
 
-        updatedAccount.setImage(imageService.insert(imageResource));
-        updatedAccount = accountService.update(account, updatedAccount);
-        if (account.getImage() != null) {
+        Image image = imageService.insert(imageResource);
+        account.setImage(image);
+        account = accountService.update(account, account);
+        if (hasImage) {
             imageService.deleteById(originalImageUuid);
         }
 
-        return mapper.toResponse(updatedAccount);
+        return mapper.toResponse(account);
     }
 
     public Account insert(Long institutionId,

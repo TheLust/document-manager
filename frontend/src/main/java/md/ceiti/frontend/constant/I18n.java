@@ -7,6 +7,11 @@ public interface I18n {
     String DEFAULT_EDIT_IMAGE = "https://cdn-icons-png.flaticon.com/512/6065/6065488.png";
     String DEFAULT_DELETE_IMAGE = "https://png.pngitem.com/pimgs/s/504-5043040_close-cross-icon-svg-hd-png-download.png";
 
+    //Page
+    String CMS = "CMS";
+    String CMS_INSTITUTIONS = "CMS | Institutions";
+    String CMS_USERS = "CMS | Users";
+
     //Component
     String BACK = "Back";
     String CANCEL = "Cancel";

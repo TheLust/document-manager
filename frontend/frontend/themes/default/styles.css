@@ -19,12 +19,18 @@
     align-items: center;
 }
 
-.profile-avatar {
+profile-avatar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.large vaadin-avatar {
     width: 150px;
     height: 150px;
 }
 
-.profile-avatar:hover {
+.large vaadin-avatar:hover {
     cursor: pointer;
 }
 

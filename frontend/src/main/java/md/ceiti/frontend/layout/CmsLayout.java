@@ -5,12 +5,12 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import md.ceiti.frontend.service.ImageService;
 import md.ceiti.frontend.service.ProfileService;
+import md.ceiti.frontend.view.CmsInstitutionsView;
 
-public class ApplicationLayout extends BasicLayout {
+public class CmsLayout extends BasicLayout {
 
-    public ApplicationLayout(ProfileService profileService) {
+    public CmsLayout(ProfileService profileService) {
         super(profileService);
         buildLayout();
     }
@@ -27,7 +27,7 @@ public class ApplicationLayout extends BasicLayout {
     private SideNav getSideNav() {
         SideNav nav = new SideNav();
         nav.addItem(
-                new SideNavItem("Institutions", "application/institutions",
+                new SideNavItem("Institutions", CmsInstitutionsView.class,
                         VaadinIcon.DASHBOARD.create()),
                 new SideNavItem("Users", "application/users",
                         VaadinIcon.CART.create())
