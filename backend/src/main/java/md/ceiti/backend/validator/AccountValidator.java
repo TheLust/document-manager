@@ -8,8 +8,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
-import java.util.Optional;
-
 @Component
 @RequiredArgsConstructor
 public class AccountValidator implements Validator, UpdateValidator {
@@ -30,7 +28,7 @@ public class AccountValidator implements Validator, UpdateValidator {
     public void validate(Object target, Errors errors, boolean isUpdate) {
         Account account = (Account) target;
         GenericValidator.validate(account, errors);
-        if (!account.getRole().equals(Role.MASTER)) {
+        if (!(Role.MASTER.equals(account.getRole()) || Role.GHOST.equals(account.getRole()))) {
             GenericValidator.notNull(errors, "institution", account.getInstitution());
         }
 

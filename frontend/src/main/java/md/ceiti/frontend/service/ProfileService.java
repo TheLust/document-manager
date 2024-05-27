@@ -32,11 +32,11 @@ public class ProfileService {
     public Profile getProfile() {
         try {
             return restTemplate.exchange(
-                            ApiUtils.PROFILE_ENDPOINT,
-                            HttpMethod.GET,
-                            ApiUtils.setHeader(JwtUtils.getJwtTokenFromCookie()),
-                            Profile.class)
-                    .getBody();
+                    ApiUtils.PROFILE_ENDPOINT,
+                    HttpMethod.GET,
+                    ApiUtils.setHeader(JwtUtils.getJwtTokenFromCookie()),
+                    Profile.class
+            ).getBody();
         } catch (HttpClientErrorException e) {
             ErrorHandler.handle(e);
             return null;
@@ -46,11 +46,11 @@ public class ProfileService {
     public Profile getProfile(String token) {
         try {
             return restTemplate.exchange(
-                            ApiUtils.PROFILE_ENDPOINT,
-                            HttpMethod.GET,
-                            ApiUtils.setHeader(token),
-                            Profile.class)
-                    .getBody();
+                    ApiUtils.PROFILE_ENDPOINT,
+                    HttpMethod.GET,
+                    ApiUtils.setHeader(token),
+                    Profile.class
+                    ).getBody();
         } catch (HttpClientErrorException e) {
             ErrorHandler.handle(e);
             return null;
@@ -60,11 +60,11 @@ public class ProfileService {
     public Profile updateProfile(ProfileUpdateRequest profileUpdateRequest) {
         try {
             return restTemplate.exchange(
-                            ApiUtils.PROFILE_ENDPOINT,
-                            HttpMethod.POST,
-                            ApiUtils.setHeader(profileUpdateRequest, JwtUtils.getJwtTokenFromCookie()),
-                            Profile.class)
-                    .getBody();
+                    ApiUtils.PROFILE_ENDPOINT,
+                    HttpMethod.POST,
+                    ApiUtils.setHeader(profileUpdateRequest, JwtUtils.getJwtTokenFromCookie()),
+                    Profile.class
+                    ).getBody();
         } catch (HttpClientErrorException e) {
             ErrorHandler.handle(e);
             return null;
@@ -73,10 +73,11 @@ public class ProfileService {
 
     public void changePassword(ProfileChangePasswordRequest profileChangePasswordRequest) {
         try {
-            restTemplate.exchange(ApiUtils.PROFILE_ENDPOINT + "/change-image",
-                            HttpMethod.POST,
-                            ApiUtils.setHeader(profileChangePasswordRequest, JwtUtils.getJwtTokenFromCookie()),
-                            Void.class);
+            restTemplate.exchange(
+                    ApiUtils.PROFILE_ENDPOINT + "/change-image",
+                    HttpMethod.POST,
+                    ApiUtils.setHeader(profileChangePasswordRequest, JwtUtils.getJwtTokenFromCookie()),
+                    Void.class);
         } catch (HttpClientErrorException e) {
             ErrorHandler.handle(e);
         }
@@ -87,10 +88,10 @@ public class ProfileService {
             return new StreamResource("profile-image", () -> new ByteArrayInputStream(
                     Objects.requireNonNull(restTemplate.exchange(
                             ApiUtils.PROFILE_ENDPOINT + "/image",
-                                    HttpMethod.GET,
-                                    ApiUtils.setHeader(JwtUtils.getJwtTokenFromCookie()),
-                                    byte[].class)
-                            .getBody())
+                            HttpMethod.GET,
+                            ApiUtils.setHeader(JwtUtils.getJwtTokenFromCookie()),
+                            byte[].class
+                    ).getBody())
             ));
         } catch (HttpClientErrorException e) {
             ErrorHandler.handle(e);
@@ -111,11 +112,11 @@ public class ProfileService {
                     new HttpEntity<>(bodyBuilder.build(), headers);
 
             return restTemplate.exchange(
-                            ApiUtils.PROFILE_ENDPOINT + "/change-image",
-                            HttpMethod.POST,
-                            requestEntity,
-                            Profile.class)
-                    .getBody();
+                    ApiUtils.PROFILE_ENDPOINT + "/change-image",
+                    HttpMethod.POST,
+                    requestEntity,
+                    Profile.class
+            ).getBody();
         } catch (HttpClientErrorException e) {
             ErrorHandler.handle(e);
             return null;

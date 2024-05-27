@@ -51,8 +51,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request ->
                         request.requestMatchers(
                                         "/api/v1/auth/**",
-                                        "/api/v1/images/**",
-                                        "/api/v1/admin/init",
+                                        "/api/v1/init/**",
                                         "/v2/api-docs",
                                         "/v3/api-docs",
                                         "/v3/api-docs/**",
@@ -64,14 +63,10 @@ public class SecurityConfig {
                                         "webjars/**",
                                         "swagger-ui.html"
                                 ).permitAll()
-                                .requestMatchers("/api/v1/admin/**")
-                                .hasRole(Role.MASTER.name())
                                 .requestMatchers("/api/v1/profile/**")
                                 .authenticated()
-                                .anyRequest()
-                                .hasAnyRole(Role.INSTITUTION_USER.name(),
-                                        Role.INSTITUTION_MASTER.name(),
-                                        Role.MASTER.name())
+                                .requestMatchers("/api/v1/cms/**")
+                                .hasRole(Role.MASTER.name())
                 )
                 .httpBasic(Customizer.withDefaults());
 

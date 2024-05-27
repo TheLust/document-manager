@@ -12,7 +12,11 @@ public class ApiUtils {
 
     public static final String PROFILE_ENDPOINT = BASE_ENDPOINT + "profile";
 
-    public static final String IMAGES_ENDPOINT = BASE_ENDPOINT + "images";
+    public static final String CMS_ENDPOINT = BASE_ENDPOINT + "cms";
+
+    public static final String CMS_INSTITUTIONS_ENDPOINT = CMS_ENDPOINT + "/institutions";
+
+    public static final String CMS_ACCOUNTS_ENDPOINT = CMS_ENDPOINT + "/accounts";
 
     public static HttpEntity<String> setHeader(String token) {
         HttpHeaders headers = new HttpHeaders();

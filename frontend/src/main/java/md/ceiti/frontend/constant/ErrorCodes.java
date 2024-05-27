@@ -2,7 +2,7 @@ package md.ceiti.frontend.constant;
 
 public interface ErrorCodes {
 
-    String NOT_AUTHENTICATED = "NOT_AUTHENTICATED";
+    String UNAUTHORIZED = "UNAUTHORIZED";
     String ACCESS_DENIED = "ACCESS_DENIED";
     String INTERNAL_ERROR = "INTERNAL_ERROR";
     String BAD_CREDENTIALS = "BAD_CREDENTIALS";

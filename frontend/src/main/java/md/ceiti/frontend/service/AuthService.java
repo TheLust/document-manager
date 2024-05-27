@@ -21,11 +21,11 @@ public class AuthService {
     public String login(LoginRequest loginRequest) {
         try {
             return restTemplate.exchange(
-                            ApiUtils.AUTH_ENDPOINT + "/login",
-                            HttpMethod.POST,
-                            ApiUtils.setHeader(loginRequest),
-                            String.class)
-                    .getBody();
+                    ApiUtils.AUTH_ENDPOINT + "/login",
+                    HttpMethod.POST,
+                    ApiUtils.setHeader(loginRequest),
+                    String.class
+            ).getBody();
         } catch (HttpClientErrorException e) {
             throw new BadRequestException(Objects.requireNonNull(e.getResponseBodyAs(ExceptionResponse.class)).getErrorCode());
         }

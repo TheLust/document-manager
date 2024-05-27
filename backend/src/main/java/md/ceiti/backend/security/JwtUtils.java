@@ -32,7 +32,7 @@ public class JwtUtils {
         return JWT.create()
                 .withSubject(subject)
                 .withClaim(USERNAME_FIELD, account.getUsername())
-                .withClaim(ROLE_FIELD, account.getRole().name())
+                .withClaim(ROLE_FIELD, account.getRole().getLabel())
                 .withIssuedAt(Date.from(ZonedDateTime.now().toInstant()))
                 .withIssuer(issuer)
                 .withExpiresAt(Date.from(ZonedDateTime.now().plusMinutes(MINUTES).toInstant()))

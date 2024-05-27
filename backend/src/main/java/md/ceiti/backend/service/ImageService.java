@@ -1,4 +1,4 @@
-package md.ceiti.backend.service.impl;
+package md.ceiti.backend.service;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -118,34 +118,21 @@ public class ImageService {
     }
 
     public byte[] resizeImage(MultipartFile file, int targetHeight) throws IOException, ImageProcessingException, MetadataException {
-        String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-        if (extension == null || extension.isBlank()) {
-            throw new ApplicationException(
-                    "Could not extract exception form file=" + file.getOriginalFilename(),
-                    ErrorCodes.BAD_REQUEST
-            );
-        }
-
-        // Convert MultipartFile to BufferedImage
         BufferedImage originalImage = convertMultipartFileToBufferedImage(file);
-
-        // Rotate the image if needed based on EXIF metadata
         originalImage = correctImageOrientation(originalImage, file.getBytes());
 
-        // Calculate the new width based on the aspect ratio
         int originalWidth = originalImage.getWidth();
         int originalHeight = originalImage.getHeight();
         int newWidth = (int) ((double) originalWidth * ((double) targetHeight / (double) originalHeight));
 
-        // Create a new resized image
-        BufferedImage resizedImage = new BufferedImage(newWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+        BufferedImage resizedImage = new BufferedImage(newWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = resizedImage.createGraphics();
+        g.setComposite(AlphaComposite.Src);
         g.drawImage(originalImage, 0, 0, newWidth, targetHeight, null);
         g.dispose();
 
-        // Convert BufferedImage to byte array
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ImageIO.write(resizedImage, extension, outputStream);
+        ImageIO.write(resizedImage, "png", outputStream);
 
         return outputStream.toByteArray();
     }
@@ -163,7 +150,7 @@ public class ImageService {
         }
     }
 
-    private BufferedImage correctImageOrientation(BufferedImage image, byte[] imageData) throws IOException, MetadataException, ImageProcessingException {
+    private BufferedImage correctImageOrientation(BufferedImage image, byte[] imageData) throws IOException, ImageProcessingException, MetadataException {
         Metadata metadata = ImageMetadataReader.readMetadata(new ByteArrayInputStream(imageData));
         ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
         if (exifIFD0Directory != null && exifIFD0Directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
@@ -186,27 +173,38 @@ public class ImageService {
     }
 
     private BufferedImage rotate90(BufferedImage image) {
-        AffineTransform transform = new AffineTransform();
-        transform.rotate(Math.PI / 2, (double) image.getHeight() / 2, (double) image.getHeight() / 2);
-        BufferedImageOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
-        BufferedImage rotatedImage = new BufferedImage(image.getHeight(), image.getWidth(), image.getType());
-        return op.filter(image, rotatedImage);
+        int width = image.getWidth();
+        int height = image.getHeight();
+        BufferedImage rotatedImage = new BufferedImage(height, width, image.getType());
+        Graphics2D g = rotatedImage.createGraphics();
+        g.rotate(Math.PI / 2, (double) height / 2, (double) height / 2);
+        g.translate(0, -width);
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+        return rotatedImage;
     }
 
     private BufferedImage rotate180(BufferedImage image) {
-        AffineTransform transform = new AffineTransform();
-        transform.rotate(Math.PI, (double) image.getWidth() / 2, (double) image.getHeight() / 2);
-        BufferedImageOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
-        BufferedImage rotatedImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-        return op.filter(image, rotatedImage);
+        int width = image.getWidth();
+        int height = image.getHeight();
+        BufferedImage rotatedImage = new BufferedImage(width, height, image.getType());
+        Graphics2D g = rotatedImage.createGraphics();
+        g.rotate(Math.PI, (double) width / 2, (double) height / 2);
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+        return rotatedImage;
     }
 
     private BufferedImage rotate270(BufferedImage image) {
-        AffineTransform transform = new AffineTransform();
-        transform.rotate(3 * Math.PI / 2, (double) image.getWidth() / 2, (double) image.getWidth() / 2);
-        BufferedImageOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
-        BufferedImage rotatedImage = new BufferedImage(image.getHeight(), image.getWidth(), image.getType());
-        return op.filter(image, rotatedImage);
+        int width = image.getWidth();
+        int height = image.getHeight();
+        BufferedImage rotatedImage = new BufferedImage(height, width, image.getType());
+        Graphics2D g = rotatedImage.createGraphics();
+        g.rotate(3 * Math.PI / 2, (double) width / 2, (double) width / 2);
+        g.translate(-height, 0);
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+        return rotatedImage;
     }
 
     private BufferedImage flipHorizontal(BufferedImage image) {

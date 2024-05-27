@@ -1,4 +1,4 @@
-package md.ceiti.backend.controller.admin;
+package md.ceiti.backend.controller.cms;
 
 import lombok.RequiredArgsConstructor;
 import md.ceiti.backend.model.Account;
@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping(value = "${api.url.base}/admin")
+@RequestMapping(value = "${api.url.base}/init")
 @RequiredArgsConstructor
 public class InitController {
 
     private final AccountService accountService;
     private final PasswordEncoder passwordEncoder;
 
-    @GetMapping(value = "/init")
+    @GetMapping
     public ResponseEntity<String> init() {
         Account account = new Account();
         account.setUsername("admin");

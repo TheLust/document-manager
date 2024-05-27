@@ -27,7 +27,7 @@ public class ErrorHandler {
                 return;
             }
 
-            if (errorCode.equals(ErrorCodes.NOT_AUTHENTICATED)) {
+            if (errorCode.equals(ErrorCodes.UNAUTHORIZED)) {
                 NavigationUtils.setLocation(LoginView.class);
             }
 
@@ -58,6 +58,10 @@ public class ErrorHandler {
                         ? exceptionResponse.getErrorCode()
                         : ErrorCodes.TIMEOUT
         );
+    }
+
+    public static void handle(Exception ignored) {
+        NavigationUtils.setLocation(ErrorView.class);
     }
 
     public static void setErrors(FormLayout formLayout, ValidationException e) {

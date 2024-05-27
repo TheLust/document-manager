@@ -1,9 +1,9 @@
 package md.ceiti.backend.facade;
 
 import lombok.RequiredArgsConstructor;
+import md.ceiti.backend.dto.CmsAccountDto;
 import md.ceiti.backend.dto.request.ProfileChangePasswordRequest;
 import md.ceiti.backend.dto.request.ProfileUpdateRequest;
-import md.ceiti.backend.dto.request.RegisterRequest;
 import md.ceiti.backend.dto.response.Profile;
 import md.ceiti.backend.mapper.GenericMapper;
 import md.ceiti.backend.model.Account;
@@ -11,16 +11,15 @@ import md.ceiti.backend.model.Image;
 import md.ceiti.backend.model.Role;
 import md.ceiti.backend.security.AccountDetails;
 import md.ceiti.backend.service.impl.AccountService;
-import md.ceiti.backend.service.impl.ImageService;
-import md.ceiti.backend.service.impl.InstitutionService;
+import md.ceiti.backend.service.ImageService;
 import md.ceiti.backend.validator.AccountValidator;
 import md.ceiti.backend.validator.ProfileChangePasswordRequestValidator;
-import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -29,7 +28,6 @@ public class AccountFacade {
 
     private final AccountService accountService;
     private final ImageService imageService;
-    private final InstitutionService institutionService;
     private final AccountValidator accountValidator;
     private final ProfileChangePasswordRequestValidator profileChangePasswordRequestValidator;
     private final GenericMapper mapper;
@@ -88,20 +86,23 @@ public class AccountFacade {
         return mapper.toResponse(account);
     }
 
-    public Account insert(Long institutionId,
-                          RegisterRequest registerRequest,
-                          BindingResult bindingResult) {
-        Account account = mapper.toEntity(registerRequest);
-        account.setEnabled(true);
+    public List<CmsAccountDto> findAll() {
+        return accountService.findAll()
+                .stream()
+                .map(mapper::toCmsResponse)
+                .toList();
+    }
 
-        if (!account.getRole().equals(Role.MASTER)) {
-            account.setInstitution(institutionService.getById(institutionId));
-        }
+    public Long insertGhost(CmsAccountDto accountDto,
+                            BindingResult bindingResult) {
+        Account account = mapper.toEntity(accountDto);
+        account.setRole(Role.GHOST);
+        account.setEnabled(true);
 
         accountValidator.validate(account, bindingResult);
 
         account.setPassword(passwordEncoder.encode(account.getPassword()));
 
-        return accountService.insert(account);
+        return accountService.insert(account).getId();
     }
 }
