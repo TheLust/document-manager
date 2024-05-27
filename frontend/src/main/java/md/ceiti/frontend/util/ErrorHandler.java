@@ -1,9 +1,12 @@
 package md.ceiti.frontend.util;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.textfield.TextFieldBase;
+import com.vaadin.flow.data.binder.Binder;
 import md.ceiti.frontend.constant.ErrorCodes;
 import md.ceiti.frontend.exception.BadRequestException;
 import md.ceiti.frontend.exception.ExceptionResponse;
@@ -37,20 +40,11 @@ public class ErrorHandler {
         }
     }
 
-    public static void handle(FrontendException e) {
-        UI current = UI.getCurrent();
-        if (current == null) {
-            return;
-        }
-
-        NavigationUtils.setLocation(ErrorView.class);
-    }
-
     public static void handle(HttpClientErrorException e) throws BadRequestException, ValidationException {
         ExceptionResponse exceptionResponse = e.getResponseBodyAs(ExceptionResponse.class);
 
         if (exceptionResponse != null && ErrorCodes.VALIDATION_ERROR.equals(exceptionResponse.getErrorCode())) {
-            throw new ValidationException(exceptionResponse.getValidationErrors());
+            throw new ValidationException(exceptionResponse.getValidationErrors(), exceptionResponse.getErrorCode());
         }
 
         throw new BadRequestException(
@@ -92,7 +86,49 @@ public class ErrorHandler {
         });
     }
 
-    public static Optional<String> getErrorCodeForField(String fieldId, ValidationException e) {
+    public static <T> void setErrors(Binder<T> binder, ValidationException e) {
+        final String exceptionMessage = "All fields from form should have id as the field from from the dto!";
+
+        for (String key: e.getErrors().keySet()) {
+            Binder.Binding<T, ?> binding = binder.getBinding(key).orElseThrow(
+                    () -> new FrontendException("Cannot set error because binder does not contain property: " + key)
+            );
+
+            if (binding.getField() instanceof Component component) {
+                if (component instanceof TextFieldBase<?, ?> textField) {
+                    if (textField.getId().isEmpty()) {
+                        throw new FrontendException(exceptionMessage);
+                    }
+
+                    Optional<String> errorCode = getErrorCodeForField(key, e);
+                    if (errorCode.isPresent()) {
+                        textField.setInvalid(true);
+                        textField.setErrorMessage(errorCode.get());
+                    }
+                } else if (component instanceof DatePicker datePicker) {
+                    if (datePicker.getId().isEmpty()) {
+                        throw new FrontendException(exceptionMessage);
+                    }
+
+                    Optional<String> errorCode = getErrorCodeForField(key, e);
+                    if (errorCode.isPresent()) {
+                        datePicker.setInvalid(true);
+                        datePicker.setErrorMessage(errorCode.get());
+                    }
+                } else if (component instanceof ComboBox<?> comboBox) {
+                    Optional<String> errorCode = getErrorCodeForField(key, e);
+                    if (errorCode.isPresent()) {
+                        comboBox.setInvalid(true);
+                        comboBox.setErrorMessage(errorCode.get());
+                    }
+                } else {
+                    throw new FrontendException("Unsupported field type");
+                }
+            }
+        }
+    }
+
+    private static Optional<String> getErrorCodeForField(String fieldId, ValidationException e) {
         String errorCode = e.getErrors().get(fieldId);
         if (errorCode != null) {
             return Optional.of(errorCode);

@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import md.ceiti.frontend.constant.ConstraintViolationMessage;
 import md.ceiti.frontend.constant.Constraints;
-import md.ceiti.frontend.constant.I18n;
 import md.ceiti.frontend.constant.fields.ProfileChangePasswordRequestFields;
 
 @Getter

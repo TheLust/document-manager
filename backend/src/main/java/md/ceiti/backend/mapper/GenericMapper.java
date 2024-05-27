@@ -42,6 +42,10 @@ public class GenericMapper {
     }
 
     public Institution toEntity(CmsInstitutionDto institutionDto) {
-        return mapper.map(institutionDto, Institution.class);
+        Institution institution = new Institution();
+        institution.setId(institutionDto.getId());
+        institution.setMaster(toEntity(institutionDto.getMaster()));
+        institution.setName(institutionDto.getName());
+        return institution;
     }
 }

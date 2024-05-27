@@ -66,7 +66,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/v1/profile/**")
                                 .authenticated()
                                 .requestMatchers("/api/v1/cms/**")
-                                .hasRole(Role.MASTER.name())
+                                .hasAuthority(Role.MASTER.name())
                 )
                 .httpBasic(Customizer.withDefaults());
 

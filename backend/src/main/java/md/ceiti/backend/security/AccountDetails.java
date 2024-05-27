@@ -18,7 +18,7 @@ public class AccountDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(account.getRole().getLabel()));
+        return Collections.singletonList(new SimpleGrantedAuthority(account.getRole().name()));
     }
 
     @Override

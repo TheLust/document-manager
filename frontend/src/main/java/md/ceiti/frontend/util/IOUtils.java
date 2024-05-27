@@ -11,18 +11,6 @@ import java.io.IOException;
 
 public class IOUtils {
 
-    public static StreamResource toStreamResource(FileSystemResource fileSystemResource) {
-        try {
-            byte[] bytes = fileSystemResource.getInputStream().readAllBytes();
-            String fileName = fileSystemResource.getFilename() != null ? fileSystemResource.getFilename() : "UNKNOWN";
-            return new StreamResource(
-                    fileName,
-                    () -> new ByteArrayInputStream(bytes));
-        } catch (IOException e) {
-            throw new FrontendException("Cannot convert from FileSystemResource to StreamResource, cause: " + e.getMessage());
-        }
-    }
-
     public static StreamResource toStreamResource(String fileName, byte[] bytes) {
         return new StreamResource(
                 fileName,

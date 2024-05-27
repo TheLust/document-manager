@@ -34,20 +34,44 @@ public class InstitutionFacade {
                                     CmsInstitutionDto institutionDto,
                                     BindingResult bindingResult) {
         Account account = accountService.getById(masterId);
-        account.setRole(Role.INSTITUTION_MASTER);
-        account = accountService.update(account, account);
-
         Institution institution = mapper.toEntity(institutionDto);
         institution.setMaster(account);
-
+        institution.setEnabled(true);
+        institution.setActive(true);
         institutionValidator.validate(institution, bindingResult);
+        institution = institutionService.insert(institution);
 
-        return mapper.toCmsResponse(
-                institutionService.insert(institution)
-        );
+        if (!Role.MASTER.equals(account.getRole())) {
+            account.setRole(Role.INSTITUTION_MASTER);
+            account.setInstitution(institution);
+        }
+
+        accountService.update(account, account);
+        return mapper.toCmsResponse(institution);
     }
 
-    public CmsInstitutionDto update(CmsInstitutionDto institutionRequest) {
-        return new CmsInstitutionDto();
+    public CmsInstitutionDto update(Long id,
+                                    Long masterId,
+                                    CmsInstitutionDto institutionDto,
+                                    BindingResult bindingResult) {
+        Institution institution = institutionService.getById(id);
+        Account account = accountService.getById(masterId);
+        Institution updatedInstitution = mapper.toEntity(institutionDto);
+        updatedInstitution.setMaster(account);
+        institutionValidator.validate(updatedInstitution, bindingResult, true);
+        updatedInstitution = institutionService.update(institution, updatedInstitution);
+
+        if (!Role.MASTER.equals(account.getRole())) {
+            account.setRole(Role.INSTITUTION_MASTER);
+            account.setInstitution(updatedInstitution);
+        }
+
+        accountService.update(account, account);
+        return mapper.toCmsResponse(updatedInstitution);
+    }
+
+    public void delete(Long id) {
+        Institution institution = institutionService.getById(id);
+        institutionService.delete(institution);
     }
 }

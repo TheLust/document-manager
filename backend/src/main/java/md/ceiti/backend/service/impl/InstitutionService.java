@@ -2,6 +2,7 @@ package md.ceiti.backend.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import md.ceiti.backend.exception.NotFoundException;
+import md.ceiti.backend.model.Account;
 import md.ceiti.backend.model.Institution;
 import md.ceiti.backend.repository.InstitutionRepository;
 import md.ceiti.backend.service.GenericService;
@@ -9,6 +10,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,9 +18,13 @@ public class InstitutionService implements GenericService<Institution, Long> {
 
     private final InstitutionRepository institutionRepository;
 
+    public Optional<Institution> findByMaster(Account account) {
+        return institutionRepository.findByMaster(account);
+    }
+
     @Override
     public List<Institution> findAll() {
-        return institutionRepository.findAll();
+        return institutionRepository.findAllByEnabledIsTrue();
     }
 
     @Override
@@ -35,13 +41,14 @@ public class InstitutionService implements GenericService<Institution, Long> {
     @Override
     public Institution update(Institution presentEntity, Institution updatedEntity) {
         BeanUtils.copyProperties(updatedEntity, presentEntity,
-                "id");
+                "id", "active", "enabled");
         return institutionRepository.save(presentEntity);
     }
 
     @Override
     public void delete(Institution entity) {
-        institutionRepository.delete(entity);
+        entity.setEnabled(false);
+        institutionRepository.save(entity);
     }
 
     @Override

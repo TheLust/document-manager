@@ -36,7 +36,7 @@ public class AccountService implements GenericService<Account, Long> {
     @Override
     public Account update(Account presentEntity, Account updatedEntity) {
         BeanUtils.copyProperties(updatedEntity, presentEntity,
-                "id");
+                "id", "enabled");
         return accountRepository.save(presentEntity);
     }
 

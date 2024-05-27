@@ -25,7 +25,7 @@ public class Institution {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @OneToOne
     @NotNull(message = ConstraintViolationCodes.REQUIRED)
     private Account master;
 
@@ -34,4 +34,7 @@ public class Institution {
 
     @NotBlank(message = ConstraintViolationCodes.REQUIRED)
     private String name;
+
+    private boolean active;
+    private boolean enabled;
 }

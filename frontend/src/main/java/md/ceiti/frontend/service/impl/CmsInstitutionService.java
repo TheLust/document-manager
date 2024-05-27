@@ -59,11 +59,31 @@ public class CmsInstitutionService implements CrudService<CmsInstitutionDto> {
 
     @Override
     public CmsInstitutionDto update(CmsInstitutionDto request) {
-        return null;
+        try {
+            return restTemplate.exchange(
+                    ApiUtils.CMS_INSTITUTIONS_ENDPOINT + "?id=" + request.getId() +
+                            "&master=" + request.getMaster().getId(),
+                    HttpMethod.PUT,
+                    ApiUtils.setHeader(request, JwtUtils.getJwtTokenFromCookie()),
+                    CmsInstitutionDto.class
+            ).getBody();
+        } catch (HttpClientErrorException e) {
+            ErrorHandler.handle(e);
+            return null;
+        }
     }
 
     @Override
     public void delete(CmsInstitutionDto request) {
-
+        try {
+            restTemplate.exchange(
+                    ApiUtils.CMS_INSTITUTIONS_ENDPOINT + "?id=" + request.getId(),
+                    HttpMethod.DELETE,
+                    ApiUtils.setHeader(request, JwtUtils.getJwtTokenFromCookie()),
+                    Void.class
+            ).getBody();
+        } catch (HttpClientErrorException e) {
+            ErrorHandler.handle(e);
+        }
     }
 }

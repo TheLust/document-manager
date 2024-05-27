@@ -4,5 +4,6 @@ public enum Role {
 
     MASTER,
     INSTITUTION_MASTER,
-    INSTITUTION_USER
+    INSTITUTION_USER,
+    GHOST
 }

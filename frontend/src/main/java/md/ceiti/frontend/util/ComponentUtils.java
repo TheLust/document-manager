@@ -42,9 +42,7 @@ public class ComponentUtils {
 
     public static Pair<HorizontalLayout, Pair<Button, Button>> getGenericDialogButtonLayout(Dialog dialog) {
         Pair<HorizontalLayout, Pair<Button, Button>> container = getGenericDialogButtonLayout();
-        container.getRight().getLeft().addClickListener(event -> {
-            dialog.close();
-        });
+        container.getRight().getLeft().addClickListener(event -> dialog.close());
 
         return container;
     }
@@ -53,9 +51,7 @@ public class ComponentUtils {
                                                                                                 T bean,
                                                                                                 Supplier<T> supplier) {
         Pair<HorizontalLayout, Pair<Button, Button>> buttonLayout = getGenericDialogButtonLayout(dialog);
-        buttonLayout.getRight().getLeft().addClickListener(event -> {
-            BeanUtils.copyProperties(supplier.get(), bean);
-        });
+        buttonLayout.getRight().getLeft().addClickListener(event -> BeanUtils.copyProperties(supplier.get(), bean));
 
         return buttonLayout;
     }
