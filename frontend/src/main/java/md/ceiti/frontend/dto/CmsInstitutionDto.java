@@ -18,4 +18,7 @@ public class CmsInstitutionDto {
 
     @NotBlank(message = CmsInstitutionDtoFields.NAME_LABEL + ConstraintViolationMessage.REQUIRED)
     private String name;
+
+    private boolean active;
+    private boolean enabled;
 }

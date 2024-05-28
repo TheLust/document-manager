@@ -81,7 +81,7 @@ public class CmsInstitutionService implements CrudService<CmsInstitutionDto> {
                     HttpMethod.DELETE,
                     ApiUtils.setHeader(request, JwtUtils.getJwtTokenFromCookie()),
                     Void.class
-            ).getBody();
+            );
         } catch (HttpClientErrorException e) {
             ErrorHandler.handle(e);
         }

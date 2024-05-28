@@ -50,39 +50,9 @@ public class CmsInstitutionCrud extends VerticalLayout implements CrudComponent<
 
     @Override
     public GridCrud<CmsInstitutionDto> getGridCrud() {
-        GridCrud<CmsInstitutionDto> crud = getGridCrudWithFactory();
-
-        crud.getGrid().setColumns("id", "name");
-        crud.getGrid()
-                .addColumn(response -> response.getMaster().getUsername()).setHeader("Master")
-                .setSortable(true);
-        crud.getGrid().getColumnByKey("id").setVisible(false);
-        crud.setCrudListener(new CustomCrudListener<>(cmsInstitutionService, crud));
+        GridCrud<CmsInstitutionDto> crud = DMFormFactory.getDefaultCrud(CmsInstitutionDto.class, cmsInstitutionService);
+        DMFormFactory.setFieldProvider(crud, cmsAccountService, "master", "username");
 
         return crud;
-    }
-
-    @Override
-    public GridCrud<CmsInstitutionDto> getGridCrudWithFactory() {
-        GenericCrudFormFactory<CmsInstitutionDto> formFactory = DMFormFactory.getDefaultFormFactory(
-                CmsInstitutionDto.class
-        );
-
-        List<CmsAccountDto> accounts = new ArrayList<>();
-        try {
-            accounts = cmsAccountService.findAll();
-        } catch (BadRequestException ignored) {}
-
-        formFactory.setVisibleProperties("name", "master");
-        formFactory.setFieldProvider("master",
-                new ComboBoxProvider<>(accounts));
-        formFactory.setFieldProvider("master",
-                new ComboBoxProvider<>("Master",
-                        accounts,
-                        new TextRenderer<>(CmsAccountDto::getUsername),
-                        CmsAccountDto::getUsername)
-        );
-
-        return new GridCrud<>(CmsInstitutionDto.class, formFactory);
     }
 }

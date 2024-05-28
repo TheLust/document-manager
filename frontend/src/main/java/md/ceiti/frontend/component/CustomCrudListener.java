@@ -84,9 +84,8 @@ public class CustomCrudListener<T extends CrudService<G>, G> implements CrudList
         } catch (BadRequestException e) {
             logger.error(getLogError("DELETE", e.getMessage()));
             ErrorHandler.handle(e);
+            throw new CrudException();
         }
-
-        throw new CrudException();
     }
 
     private String getLogError(String operation, String badRequestMessage) {

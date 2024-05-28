@@ -24,7 +24,7 @@ public class InstitutionService implements GenericService<Institution, Long> {
 
     @Override
     public List<Institution> findAll() {
-        return institutionRepository.findAllByEnabledIsTrue();
+        return institutionRepository.findAll();
     }
 
     @Override
@@ -41,14 +41,13 @@ public class InstitutionService implements GenericService<Institution, Long> {
     @Override
     public Institution update(Institution presentEntity, Institution updatedEntity) {
         BeanUtils.copyProperties(updatedEntity, presentEntity,
-                "id", "active", "enabled");
+                "id");
         return institutionRepository.save(presentEntity);
     }
 
     @Override
     public void delete(Institution entity) {
-        entity.setEnabled(false);
-        institutionRepository.save(entity);
+        institutionRepository.delete(entity);
     }
 
     @Override

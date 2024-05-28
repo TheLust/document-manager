@@ -10,4 +10,6 @@ public class CmsInstitutionDto {
     private Long id;
     private CmsAccountDto master;
     private String name;
+    private boolean active;
+    private boolean enabled;
 }

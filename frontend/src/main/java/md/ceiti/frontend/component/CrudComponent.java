@@ -6,5 +6,4 @@ public interface CrudComponent<T> {
 
     void buildComponent();
     GridCrud<T> getGridCrud();
-    GridCrud<T> getGridCrudWithFactory();
 }

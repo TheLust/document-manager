@@ -36,8 +36,6 @@ public class InstitutionFacade {
         Account account = accountService.getById(masterId);
         Institution institution = mapper.toEntity(institutionDto);
         institution.setMaster(account);
-        institution.setEnabled(true);
-        institution.setActive(true);
         institutionValidator.validate(institution, bindingResult);
         institution = institutionService.insert(institution);
 
@@ -72,6 +70,12 @@ public class InstitutionFacade {
 
     public void delete(Long id) {
         Institution institution = institutionService.getById(id);
+        Account master = institution.getMaster();
+        if (!Role.MASTER.equals(master.getRole())) {
+            master.setRole(Role.GHOST);
+            master.setInstitution(null);
+        }
+
         institutionService.delete(institution);
     }
 }

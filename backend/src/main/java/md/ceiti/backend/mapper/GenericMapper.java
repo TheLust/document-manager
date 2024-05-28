@@ -46,6 +46,8 @@ public class GenericMapper {
         institution.setId(institutionDto.getId());
         institution.setMaster(toEntity(institutionDto.getMaster()));
         institution.setName(institutionDto.getName());
+        institution.setActive(institutionDto.isActive());
+        institution.setEnabled(institutionDto.isEnabled());
         return institution;
     }
 }
