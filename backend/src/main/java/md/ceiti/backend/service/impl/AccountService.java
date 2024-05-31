@@ -3,6 +3,7 @@ package md.ceiti.backend.service.impl;
 import lombok.RequiredArgsConstructor;
 import md.ceiti.backend.exception.NotFoundException;
 import md.ceiti.backend.model.Account;
+import md.ceiti.backend.model.Institution;
 import md.ceiti.backend.repository.AccountRepository;
 import md.ceiti.backend.service.GenericService;
 import org.springframework.beans.BeanUtils;
@@ -60,5 +61,9 @@ public class AccountService implements GenericService<Account, Long> {
 
     public Optional<Account> findByPhoneNumber(String phoneNumber) {
         return accountRepository.findByPhoneNumber(phoneNumber);
+    }
+
+    public void updateAccountsToGhostByInstitution(Institution institution) {
+        accountRepository.updateAccountsToGhostByInstitution(institution);
     }
 }

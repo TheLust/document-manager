@@ -12,5 +12,4 @@ import java.util.Optional;
 public interface InstitutionRepository extends JpaRepository<Institution, Long> {
 
     Optional<Institution> findByMaster(Account account);
-    List<Institution> findAllByEnabledIsTrue();
 }

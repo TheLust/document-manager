@@ -11,6 +11,8 @@ public class CmsAccountDto {
 
     private Long id;
     private String username;
+    private String password;
+    private CmsInstitutionDto institution;
     private Image image;
     private Role role;
     private String email;

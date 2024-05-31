@@ -7,6 +7,7 @@ import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import md.ceiti.frontend.service.ProfileService;
 import md.ceiti.frontend.view.CmsInstitutionsView;
+import md.ceiti.frontend.view.CmsUsersView;
 
 public class CmsLayout extends BasicLayout {
 
@@ -28,9 +29,9 @@ public class CmsLayout extends BasicLayout {
         SideNav nav = new SideNav();
         nav.addItem(
                 new SideNavItem("Institutions", CmsInstitutionsView.class,
-                        VaadinIcon.DASHBOARD.create()),
-                new SideNavItem("Users", "application/users",
-                        VaadinIcon.CART.create())
+                        VaadinIcon.INSTITUTION.create()),
+                new SideNavItem("Users", CmsUsersView.class,
+                        VaadinIcon.GROUP.create())
         );
         return nav;
     }

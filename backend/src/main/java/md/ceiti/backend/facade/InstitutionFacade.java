@@ -70,11 +70,7 @@ public class InstitutionFacade {
 
     public void delete(Long id) {
         Institution institution = institutionService.getById(id);
-        Account master = institution.getMaster();
-        if (!Role.MASTER.equals(master.getRole())) {
-            master.setRole(Role.GHOST);
-            master.setInstitution(null);
-        }
+        accountService.updateAccountsToGhostByInstitution(institution);
 
         institutionService.delete(institution);
     }

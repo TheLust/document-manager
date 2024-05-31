@@ -8,12 +8,16 @@ import md.ceiti.backend.dto.response.Profile;
 import md.ceiti.backend.mapper.GenericMapper;
 import md.ceiti.backend.model.Account;
 import md.ceiti.backend.model.Image;
+import md.ceiti.backend.model.Institution;
 import md.ceiti.backend.model.Role;
 import md.ceiti.backend.security.AccountDetails;
-import md.ceiti.backend.service.impl.AccountService;
 import md.ceiti.backend.service.ImageService;
+import md.ceiti.backend.service.impl.AccountService;
+import md.ceiti.backend.service.impl.InstitutionService;
 import md.ceiti.backend.validator.AccountValidator;
 import md.ceiti.backend.validator.ProfileChangePasswordRequestValidator;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
@@ -28,10 +32,12 @@ public class AccountFacade {
 
     private final AccountService accountService;
     private final ImageService imageService;
+    private final InstitutionService institutionService;
     private final AccountValidator accountValidator;
     private final ProfileChangePasswordRequestValidator profileChangePasswordRequestValidator;
     private final GenericMapper mapper;
     private final PasswordEncoder passwordEncoder;
+    private final JavaMailSender mailSender;
 
     public Profile getProfile(AccountDetails accountDetails) {
         return mapper.toResponse(accountDetails.getAccount());
@@ -90,6 +96,7 @@ public class AccountFacade {
         return accountService.findAll()
                 .stream()
                 .map(mapper::toCmsResponse)
+                .peek(accountDto -> accountDto.setPassword(null))
                 .toList();
     }
 
@@ -104,5 +111,36 @@ public class AccountFacade {
         account.setPassword(passwordEncoder.encode(account.getPassword()));
 
         return accountService.insert(account).getId();
+    }
+
+    public CmsAccountDto insert(Long institutionId,
+                                CmsAccountDto accountDto,
+                                BindingResult bindingResult) {
+        Account account = mapper.toEntity(accountDto);
+        if (!Role.MASTER.equals(account.getRole())) {
+            Institution institution = institutionService.getById(institutionId);
+            account.setInstitution(institution);
+        }
+        String password = RandomStringUtils.randomAlphanumeric(8);
+        account.setPassword(password);
+
+        accountValidator.validate(account, bindingResult);
+        account.setPassword(passwordEncoder.encode(account.getPassword()));
+
+        return mapper.toCmsResponse(
+                accountService.insert(account)
+        );
+    }
+
+    public CmsAccountDto update(Long id,
+                                Long institutionId,
+                                CmsAccountDto accountDto,
+                                BindingResult bindingResult) {
+        return new CmsAccountDto();
+    }
+
+    public void delete(Long id) {
+        Account account = accountService.getById(id);
+        accountService.delete(account);
     }
 }
