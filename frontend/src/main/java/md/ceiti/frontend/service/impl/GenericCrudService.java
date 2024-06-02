@@ -1,5 +1,6 @@
 package md.ceiti.frontend.service.impl;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import md.ceiti.frontend.exception.FrontendException;
@@ -14,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,14 +23,15 @@ import java.util.Set;
 
 @RequiredArgsConstructor
 @Setter
+@Getter
 public class GenericCrudService<T> implements CrudService<T> {
 
     private final RestTemplate restTemplate;
     private Class<T> type;
     private String endpoint;
-    private Map<String, String> insertQueryParams;
-    private Map<String, String> updateQueryParams;
-    private Map<String, String> deleteQueryParams;
+    private Map<String, String> insertQueryParams = new HashMap<>();
+    private Map<String, String> updateQueryParams = new HashMap<>();
+    private Map<String, String> deleteQueryParams = new HashMap<>();
 
     @Override
     public List<T> findAll() {
@@ -100,14 +103,14 @@ public class GenericCrudService<T> implements CrudService<T> {
         return (Class<T[]>) Array.newInstance(type, 0).getClass();
     }
 
-    private String getQueryParams(T request, Map<String, String> map) {
+    public String getQueryParams(T request, Map<String, String> map) {
         StringBuilder result = new StringBuilder();
         Set<String> keys = map.keySet();
         if (!keys.isEmpty()) {
             for (String key: keys) {
                 result.append("&").append(getQueryParam(request, map, key));
             }
-            result.replace(0, 0, "?");
+            result.replace(0, 1, "?");
         }
 
         return result.toString();
@@ -122,7 +125,7 @@ public class GenericCrudService<T> implements CrudService<T> {
             ));
         }
         Optional<String> value = getNestedFieldValue(request, path);
-        return value.map(s -> key + "=" + s).orElse("");
+        return key + "=" + (value.isPresent() ? value.get() : 0);
     }
 
     private Optional<String> getNestedFieldValue(T request, String path) {

@@ -3,12 +3,14 @@ package md.ceiti.backend.security;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import md.ceiti.backend.model.Account;
+import md.ceiti.backend.model.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
@@ -48,6 +50,18 @@ public class AccountDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return account.isEnabled();
+        if (Role.GHOST.equals(account.getRole())) {
+            return false;
+        }
+
+        if (Role.MASTER.equals(account.getRole())) {
+            return true;
+        }
+
+        if (Role.INSTITUTION_MASTER.equals(account.getRole())) {
+            return account.isEnabled();
+        }
+
+        return account.isEnabled() && account.isActive();
     }
 }

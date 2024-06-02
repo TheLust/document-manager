@@ -37,7 +37,7 @@ public class AccountService implements GenericService<Account, Long> {
     @Override
     public Account update(Account presentEntity, Account updatedEntity) {
         BeanUtils.copyProperties(updatedEntity, presentEntity,
-                "id", "enabled");
+                "id");
         return accountRepository.save(presentEntity);
     }
 
@@ -63,7 +63,7 @@ public class AccountService implements GenericService<Account, Long> {
         return accountRepository.findByPhoneNumber(phoneNumber);
     }
 
-    public void updateAccountsToGhostByInstitution(Institution institution) {
-        accountRepository.updateAccountsToGhostByInstitution(institution);
+    public void updateAccountsToDisabledByInstitution(Institution institution) {
+        accountRepository.updateAccountsToDisabledByInstitution(institution);
     }
 }

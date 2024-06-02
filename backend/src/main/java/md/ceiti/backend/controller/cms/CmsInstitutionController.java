@@ -1,7 +1,7 @@
 package md.ceiti.backend.controller.cms;
 
 import lombok.RequiredArgsConstructor;
-import md.ceiti.backend.dto.CmsInstitutionDto;
+import md.ceiti.backend.dto.cms.CmsInstitutionDto;
 import md.ceiti.backend.facade.InstitutionFacade;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

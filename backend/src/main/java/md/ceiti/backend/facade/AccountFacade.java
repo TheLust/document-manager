@@ -1,7 +1,7 @@
 package md.ceiti.backend.facade;
 
 import lombok.RequiredArgsConstructor;
-import md.ceiti.backend.dto.CmsAccountDto;
+import md.ceiti.backend.dto.cms.CmsAccountDto;
 import md.ceiti.backend.dto.request.ProfileChangePasswordRequest;
 import md.ceiti.backend.dto.request.ProfileUpdateRequest;
 import md.ceiti.backend.dto.response.Profile;
@@ -16,7 +16,6 @@ import md.ceiti.backend.service.impl.AccountService;
 import md.ceiti.backend.service.impl.InstitutionService;
 import md.ceiti.backend.validator.AccountValidator;
 import md.ceiti.backend.validator.ProfileChangePasswordRequestValidator;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -96,7 +95,9 @@ public class AccountFacade {
         return accountService.findAll()
                 .stream()
                 .map(mapper::toCmsResponse)
-                .peek(accountDto -> accountDto.setPassword(null))
+                .peek(accountDto -> {
+                    accountDto.setPassword(null);
+                })
                 .toList();
     }
 
@@ -117,13 +118,10 @@ public class AccountFacade {
                                 CmsAccountDto accountDto,
                                 BindingResult bindingResult) {
         Account account = mapper.toEntity(accountDto);
-        if (!Role.MASTER.equals(account.getRole())) {
+        if (Role.INSTITUTION_MASTER.equals(account.getRole()) || Role.INSTITUTION_USER.equals(account.getRole())) {
             Institution institution = institutionService.getById(institutionId);
             account.setInstitution(institution);
         }
-        String password = RandomStringUtils.randomAlphanumeric(8);
-        account.setPassword(password);
-
         accountValidator.validate(account, bindingResult);
         account.setPassword(passwordEncoder.encode(account.getPassword()));
 
@@ -136,11 +134,33 @@ public class AccountFacade {
                                 Long institutionId,
                                 CmsAccountDto accountDto,
                                 BindingResult bindingResult) {
-        return new CmsAccountDto();
+        Account account = accountService.getById(id);
+        Account updatedAccount = mapper.toEntity(accountDto);
+        if (Role.INSTITUTION_MASTER.equals(updatedAccount.getRole())
+                || Role.INSTITUTION_USER.equals(updatedAccount.getRole())) {
+            Institution institution = institutionService.getById(institutionId);
+            updatedAccount.setInstitution(institution);
+        } else {
+            updatedAccount.setInstitution(null);
+        }
+
+        if (updatedAccount.getPassword() == null || updatedAccount.getPassword().isBlank()) {
+            updatedAccount.setPassword("Str0ngPassw0rd!");
+            accountValidator.validate(updatedAccount, bindingResult, true);
+            updatedAccount.setPassword(account.getPassword());
+        } else {
+            accountValidator.validate(updatedAccount, bindingResult, true);
+            updatedAccount.setPassword(passwordEncoder.encode(updatedAccount.getPassword()));
+        }
+
+        return mapper.toCmsResponse(
+                accountService.update(account, updatedAccount)
+        );
     }
 
     public void delete(Long id) {
         Account account = accountService.getById(id);
-        accountService.delete(account);
+        account.setEnabled(false);
+        accountService.update(account, account);
     }
 }

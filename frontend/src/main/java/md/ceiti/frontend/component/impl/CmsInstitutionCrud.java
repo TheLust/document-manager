@@ -5,7 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import md.ceiti.frontend.component.CrudComponent;
 import md.ceiti.frontend.component.DMFormFactory;
-import md.ceiti.frontend.dto.CmsInstitutionDto;
+import md.ceiti.frontend.dto.cms.CmsInstitutionDto;
+import md.ceiti.frontend.dto.cms.SimpleAccountDto;
 import md.ceiti.frontend.mapper.GenericMapper;
 import md.ceiti.frontend.service.impl.CmsAccountService;
 import md.ceiti.frontend.service.impl.CmsInstitutionService;
@@ -49,7 +50,11 @@ public class CmsInstitutionCrud extends VerticalLayout implements CrudComponent<
                 List.of("id"),
                 Collections.emptyList()
         );
-        DMFormFactory.setFieldProvider(crud, cmsAccountService, "master", "username");
+        DMFormFactory.setFieldProvider(crud,
+                cmsAccountService,
+                "master",
+                "username",
+                SimpleAccountDto.class);
         DMFormFactory.orderColumns(crud, CmsInstitutionDto.class, Collections.emptyList());
 
         return crud;

@@ -32,6 +32,9 @@ public class Institution {
     @OneToMany(mappedBy = "institution")
     private List<Account> accounts = new ArrayList<>();
 
+    @OneToMany(mappedBy = "institution")
+    private List<Category> categories = new ArrayList<>();
+
     @NotBlank(message = ConstraintViolationCodes.REQUIRED)
     private String name;
 

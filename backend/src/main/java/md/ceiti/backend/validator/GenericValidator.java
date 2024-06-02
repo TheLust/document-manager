@@ -31,13 +31,14 @@ public class GenericValidator {
 
     public static <T, G> void unique(Errors errors,
                                      String field,
-                                     Class<G> fieldType,
+                                     String idFieldName,
+                                     Class<G> idFieldType,
                                      T entity,
                                      Optional<T> found) {
         try {
             if (found.isPresent()) {
-                G presentField = getFieldValue(entity, field, fieldType);
-                G foundField = getFieldValue(found.get(), field, fieldType);
+                G presentField = getFieldValue(entity, idFieldName, idFieldType);
+                G foundField = getFieldValue(found.get(), idFieldName, idFieldType);
                 if (!presentField.equals(foundField)) {
                     errors.rejectValue(field, "", ConstraintViolationCodes.UNIQUE);
                 }

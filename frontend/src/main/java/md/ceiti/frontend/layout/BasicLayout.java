@@ -15,8 +15,10 @@ import md.ceiti.frontend.constant.I18n;
 import md.ceiti.frontend.dto.response.Profile;
 import md.ceiti.frontend.exception.BadRequestException;
 import md.ceiti.frontend.service.ProfileService;
+import md.ceiti.frontend.util.ApiUtils;
 import md.ceiti.frontend.util.ComponentUtils;
 import md.ceiti.frontend.util.ErrorHandler;
+import md.ceiti.frontend.util.JwtUtils;
 import md.ceiti.frontend.util.NavigationUtils;
 import md.ceiti.frontend.view.LoginView;
 import md.ceiti.frontend.view.ProfileView;
@@ -26,9 +28,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class BasicLayout extends AppLayout {
 
+    Profile profile;
+
     @Autowired
     public BasicLayout(ProfileService profileService) {
-        Profile profile;
         StreamResource image = null;
         try {
             profile = profileService.getProfile();
@@ -70,18 +73,18 @@ public class BasicLayout extends AppLayout {
         contextMenu.setTarget(container);
         contextMenu.setOpenOnClick(true);
 
-        MenuItem profileMenuItem = contextMenu.addItem(I18n.PROFILE);
+        MenuItem profileMenuItem = contextMenu.addItem(I18n.Component.PROFILE);
         profileMenuItem.addClickListener(menuItemClickEvent -> NavigationUtils.navigateTo(ProfileView.class));
 
-        contextMenu.addItem(I18n.FAQ);
+        contextMenu.addItem(I18n.Component.FAQ);
         contextMenu.add(new Hr());
 
         ConfirmDialog signOutConfirmDialog = ComponentUtils.getGenericConfirmDialog(
-                I18n.SIGN_OUT_HEADER,
-                I18n.SIGN_OUT_TEXT
+                I18n.Component.SIGN_OUT_HEADER,
+                I18n.Component.SIGN_OUT_TEXT
         );
-        signOutConfirmDialog.setConfirmButton(I18n.SIGN_OUT, confirmEvent -> NavigationUtils.navigateTo(LoginView.class));
-        MenuItem signOutMenuItem = contextMenu.addItem(I18n.SIGN_OUT);
+        signOutConfirmDialog.setConfirmButton(I18n.Component.SIGN_OUT, confirmEvent -> NavigationUtils.navigateTo(LoginView.class));
+        MenuItem signOutMenuItem = contextMenu.addItem(I18n.Component.SIGN_OUT);
         signOutMenuItem.addClickListener(menuItemClickEvent -> signOutConfirmDialog.open());
         signOutMenuItem.getStyle().set("color", "red");
 

@@ -1,6 +1,6 @@
 package md.ceiti.frontend.service.impl;
 
-import md.ceiti.frontend.dto.CmsAccountDto;
+import md.ceiti.frontend.dto.cms.CmsAccountDto;
 import md.ceiti.frontend.util.ApiUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;

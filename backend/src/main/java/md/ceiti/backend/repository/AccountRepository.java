@@ -21,6 +21,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE Account a set a.institution = null, a.role = 'GHOST' where a.institution = :institution")
-    void updateAccountsToGhostByInstitution(Institution institution);
+    @Query("UPDATE Account a set a.enabled = false where a.institution = :institution")
+    void updateAccountsToDisabledByInstitution(Institution institution);
 }

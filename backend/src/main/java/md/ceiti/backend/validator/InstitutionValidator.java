@@ -34,7 +34,8 @@ public class InstitutionValidator implements Validator, UpdateValidator {
         } else {
             GenericValidator.unique(errors,
                     "master",
-                    Account.class,
+                    "id",
+                    Long.class,
                     institution,
                     institutionService.findByMaster(institution.getMaster()));
         }

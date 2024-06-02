@@ -5,6 +5,7 @@ import md.ceiti.frontend.dto.request.LoginRequest;
 import md.ceiti.frontend.exception.BadRequestException;
 import md.ceiti.frontend.exception.ExceptionResponse;
 import md.ceiti.frontend.util.ApiUtils;
+import md.ceiti.frontend.util.ErrorHandler;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -27,7 +28,8 @@ public class AuthService {
                     String.class
             ).getBody();
         } catch (HttpClientErrorException e) {
-            throw new BadRequestException(Objects.requireNonNull(e.getResponseBodyAs(ExceptionResponse.class)).getErrorCode());
+            ErrorHandler.handle(e);
+            return null;
         }
     }
 }

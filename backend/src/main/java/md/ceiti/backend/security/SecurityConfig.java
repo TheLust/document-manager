@@ -65,6 +65,11 @@ public class SecurityConfig {
                                 ).permitAll()
                                 .requestMatchers("/api/v1/profile/**")
                                 .authenticated()
+                                .requestMatchers("/api/v1/institutions/**")
+                                .hasAnyAuthority(
+                                        Role.INSTITUTION_MASTER.name(),
+                                        Role.INSTITUTION_USER.name()
+                                )
                                 .requestMatchers("/api/v1/cms/**")
                                 .hasAuthority(Role.MASTER.name())
                 )

@@ -2,7 +2,7 @@ package md.ceiti.backend.controller.cms;
 
 
 import lombok.RequiredArgsConstructor;
-import md.ceiti.backend.dto.CmsAccountDto;
+import md.ceiti.backend.dto.cms.CmsAccountDto;
 import md.ceiti.backend.facade.AccountFacade;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

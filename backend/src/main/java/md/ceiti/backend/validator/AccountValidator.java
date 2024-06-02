@@ -5,8 +5,14 @@ import md.ceiti.backend.model.Account;
 import md.ceiti.backend.model.Role;
 import md.ceiti.backend.service.impl.AccountService;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.Validator;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -39,17 +45,20 @@ public class AccountValidator implements Validator, UpdateValidator {
         } else {
             GenericValidator.unique(errors,
                     "username",
-                    String.class,
+                    "id",
+                    Long.class,
                     account,
                     accountService.findByUsername(account.getUsername()));
             GenericValidator.unique(errors,
                     "email",
-                    String.class,
+                    "id",
+                    Long.class,
                     account,
                     accountService.findByEmail(account.getEmail()));
             GenericValidator.unique(errors,
                     "phoneNumber",
-                    String.class,
+                    "id",
+                    Long.class,
                     account,
                     accountService.findByPhoneNumber(account.getPhoneNumber()));
         }

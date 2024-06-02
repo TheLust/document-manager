@@ -75,5 +75,6 @@ public class Account {
     @NotNull(message = ConstraintViolationCodes.REQUIRED)
     private LocalDate birthDate;
 
+    private boolean active;
     private boolean enabled;
 }

@@ -83,7 +83,7 @@ public class ProfileView extends NavigationUtilsView {
 
         ProfileAvatar profileAvatar = new ProfileAvatar(
                 profileImageResource,
-                I18n.DEFAULT_EDIT_IMAGE);
+                I18n.Functional.DEFAULT_EDIT_IMAGE);
         profileAvatar.setActionOnClick(() -> getChangeImageDialog(profileAvatar).open());
         profileAvatar.addClassName(Style.LARGE);
 
@@ -189,7 +189,7 @@ public class ProfileView extends NavigationUtilsView {
 
                 layout.add(profileAvatar);
             } catch (IOException e) {
-                Notification.show(I18n.IMAGE_READ_ERROR);
+                Notification.show(I18n.Component.IMAGE_READ_ERROR);
                 upload.setVisible(true);
                 upload.clearFileList();
                 hideChangeButton.run();
@@ -213,7 +213,7 @@ public class ProfileView extends NavigationUtilsView {
         phoneNumber.setId(ProfileUpdateRequestFields.PHONE_NUMBER.getId());
 
         DatePicker.DatePickerI18n datePickerI18n = new DatePicker.DatePickerI18n();
-        datePickerI18n.setDateFormat(I18n.DATE_FORMAT);
+        datePickerI18n.setDateFormat(I18n.Functional.DATE_FORMAT);
         DatePicker birthDate = new DatePicker(ProfileUpdateRequestFields.BIRTH_DATE.getLabel());
         birthDate.setId(ProfileUpdateRequestFields.BIRTH_DATE.getId());
         birthDate.setI18n(datePickerI18n);
@@ -241,17 +241,17 @@ public class ProfileView extends NavigationUtilsView {
     }
 
     private HorizontalLayout getProfileButtonLayout(FormLayout form) {
-        Button back = new Button(I18n.BACK);
+        Button back = new Button(I18n.Component.BACK);
         back.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        Button edit = new Button(I18n.EDIT);
+        Button edit = new Button(I18n.Component.EDIT);
         edit.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        Button cancel = new Button(I18n.CANCEL);
+        Button cancel = new Button(I18n.Component.CANCEL);
         cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         cancel.setVisible(false);
 
-        Button save = new Button(I18n.SAVE);
+        Button save = new Button(I18n.Component.SAVE);
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         save.setVisible(false);
 
@@ -306,7 +306,7 @@ public class ProfileView extends NavigationUtilsView {
     }
 
     private HorizontalLayout getChangePasswordLayout() {
-        Button button = new Button(I18n.CHANGE_PASSWORD);
+        Button button = new Button(I18n.Component.CHANGE_PASSWORD);
         button.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         button.addClickListener(event -> getChangePasswordDialog(getChangePasswordForm()).open());
 
@@ -319,7 +319,7 @@ public class ProfileView extends NavigationUtilsView {
 
     private Dialog getChangePasswordDialog(FormLayout form) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(I18n.CHANGE_PASSWORD);
+        dialog.setHeaderTitle(I18n.Component.CHANGE_PASSWORD);
         dialog.add(form);
         dialog.add(getChangePasswordDialogButtonLayout(dialog, form));
         dialog.setCloseOnOutsideClick(false);

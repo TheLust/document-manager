@@ -96,7 +96,7 @@ public class ImageService {
     }
 
     private File getFile(Image image, boolean useCheck) {
-        String FILE_PATH = "files/%s.%s";
+        String FILE_PATH = "files/images/%s.%s";
         File file = new File(String.format(FILE_PATH, image.getId(), image.getExtension()));
 
         if (!file.exists() && useCheck) {

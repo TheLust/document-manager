@@ -1,6 +1,8 @@
 package md.ceiti.frontend.component;
 
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.HasValueAndElement;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
@@ -17,6 +19,7 @@ import md.ceiti.frontend.exception.FrontendException;
 import md.ceiti.frontend.service.CrudService;
 import md.ceiti.frontend.util.ErrorHandler;
 import org.apache.commons.lang3.ArrayUtils;
+import org.modelmapper.ModelMapper;
 import org.vaadin.crudui.crud.impl.GridCrud;
 import org.vaadin.crudui.form.CrudFormFactory;
 import org.vaadin.crudui.form.impl.field.provider.ComboBoxProvider;
@@ -26,6 +29,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class DMFormFactory {
 
@@ -39,6 +44,7 @@ public class DMFormFactory {
                 .filter(field -> (
                         String.class.equals(field.getType())
                         || Integer.class.equals(field.getType())
+                        || UUID.class.equals(field.getType())
                         || Double.class.equals(field.getType())
                         || Float.class.equals(field.getType())
                         || Long.class.equals(field.getType())
@@ -80,7 +86,7 @@ public class DMFormFactory {
                     .setKey(booleanColumn);
         }
 
-        crud.setCrudListener(new CustomCrudListener<>(service, crud));
+        crud.setCrudListener(new GenericCrudListener<>(service, crud));
 
         return crud;
     }
@@ -96,8 +102,12 @@ public class DMFormFactory {
 
         formFactory.setShowNotifications(true);
         formFactory.setErrorListener(e -> {
-            if (e instanceof CrudException) {
-                Notification.show("Please fix the errors and try again");
+            if (e instanceof CrudException crudException) {
+                if (crudException.getMessage() != null && !crudException.getMessage().isBlank()) {
+                    Notification.show(crudException.getMessage());
+                } else {
+                    Notification.show("Please fix the errors and try again");
+                }
             } else {
                 ErrorHandler.handle(e);
             }
@@ -108,18 +118,31 @@ public class DMFormFactory {
         return formFactory;
     }
 
-    public static <T extends CrudService<G>, G> void setFieldProvider(GridCrud<?> crud,
-                                                                      T service,
-                                                                      String field,
-                                                                      String propertyName) {
-        List<G> data = new ArrayList<>();
+    public static <T extends CrudService<G>, G, H> void setFieldProvider(GridCrud<?> crud,
+                                                                         T service,
+                                                                         String field,
+                                                                         String propertyName,
+                                                                         Class<H> type) {
+        ModelMapper mapper = new ModelMapper();
+        List<H> data = new ArrayList<>();
         try {
-            data = service.findAll();
+            data = service.findAll()
+                    .stream()
+                    .map(entity -> mapper.map(entity, type))
+                    .toList();
         } catch (BadRequestException ignored) {}
 
+        setFieldProvider(crud, data, field, propertyName);
+    }
+
+    public static <T> void setFieldProvider(GridCrud<?> crud,
+                                            List<T> data,
+                                            String field,
+                                            String propertyName) {
         crud.getGrid()
                 .addColumn(object -> getStringValue(getValue(object, field), propertyName))
                 .setHeader(convertCamelCaseToTitle(field))
+                .setSortable(true)
                 .setKey(field);
         crud.getCrudFormFactory()
                 .setFieldProvider(field,
@@ -158,6 +181,14 @@ public class DMFormFactory {
         crud.getGrid().setColumnOrder(sortedColumns);
     }
 
+    public static <T> FormLayout getForm(CrudFormFactory<T> crudFormFactory) {
+        if (crudFormFactory instanceof GenericCrudFormFactory<T> genericCrudFormFactory) {
+            return genericCrudFormFactory.getFormLayout();
+        }
+
+        throw new FrontendException("crudFormFactory is not generic/custom to extract the binder");
+    }
+
     public static <T> Binder<T> getBinder(CrudFormFactory<T> crudFormFactory) {
         if (crudFormFactory instanceof GenericCrudFormFactory<T> genericCrudFormFactory) {
             return genericCrudFormFactory.getFormBinder();
@@ -166,12 +197,52 @@ public class DMFormFactory {
         throw new FrontendException("crudFormFactory is not generic/custom to extract the binder");
     }
 
-    public static <T> FormLayout getFormLayout(CrudFormFactory<T> crudFormFactory) {
-        if (crudFormFactory instanceof GenericCrudFormFactory<T> genericCrudFormFactory) {
-            return genericCrudFormFactory.getFormLayout();
-        }
 
-        throw new FrontendException("crudFormFactory is not generic/custom to extract the binder");
+    @SuppressWarnings("unchecked")
+    public static <T, G> void addConditionalField(GridCrud<T> crud,
+                                                  String parentName,
+                                                  String childName,
+                                                  List<G> expectedValues,
+                                                  Class<G> expectedType) {
+        Runnable runnable = () -> {
+            Binder<T> binder = getBinder(crud.getCrudFormFactory());
+            Optional<Binder.Binding<T, ?>> parentBinding = binder.getBinding(parentName);
+            if (parentBinding.isEmpty()) {
+                throw new FrontendException("Cannot find the binding for property with name = " + parentName);
+            }
+
+            AbstractField<?, ?> parentField = getAbstractFieldFromBinder(parentBinding.get());
+
+            Optional<Binder.Binding<T, ?>> childBinding = binder.getBinding(childName);
+            if (childBinding.isEmpty()) {
+                throw new FrontendException("Cannot find the binding for property with name = " + childName);
+            }
+
+            AbstractField<?, ?> childField = getAbstractFieldFromBinder(childBinding.get());
+            if (parentField.getValue() != null) {
+                if (parentField.getValue().getClass().equals(expectedType)) {
+                    childField.setVisible(expectedValues.contains((G) parentField.getValue()));
+                }
+            } else {
+                childField.setVisible(false);
+            }
+
+            parentField.addValueChangeListener(gComponentValueChangeEvent -> {
+                if (gComponentValueChangeEvent.getValue().getClass().equals(expectedType)) {
+                    G value = (G) gComponentValueChangeEvent.getValue();
+                    childField.setVisible(expectedValues.contains(value));
+                }
+            });
+        };
+
+        crud.getAddButton().addClickListener(event -> runnable.run());
+        crud.getUpdateButton().addClickListener(event -> runnable.run());
+        crud.getDeleteButton().addClickListener(event -> runnable.run());
+    }
+
+    public static AbstractField<?, ?> getAbstractFieldFromBinder(Binder.Binding<?, ?> binding) {
+        HasValue<?, ?> hasValue = binding.getField();
+        return (AbstractField<?, ?>) hasValue;
     }
 
     private static String[] getSortedFieldNames(Field[] fields, List<String> excludedFields) {
@@ -212,7 +283,7 @@ public class DMFormFactory {
     private static <T> String getStringValue(T object, String propertyName) {
         try {
             if (object == null) {
-                return I18n.NONE;
+                return I18n.Component.NONE;
             }
 
             Field field = object.getClass().getDeclaredField(propertyName);

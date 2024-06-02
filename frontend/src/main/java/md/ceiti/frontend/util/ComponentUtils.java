@@ -19,17 +19,17 @@ public class ComponentUtils {
         confirmDialog.setHeader(header);
         confirmDialog.setText(text);
         confirmDialog.setCancelable(true);
-        confirmDialog.setCancelText(I18n.CANCEL);
+        confirmDialog.setCancelText(I18n.Component.CANCEL);
         confirmDialog.setRejectable(false);
 
         return confirmDialog;
     }
 
     public static Pair<HorizontalLayout, Pair<Button, Button>> getGenericDialogButtonLayout() {
-        Button cancel = new Button(I18n.CANCEL);
+        Button cancel = new Button(I18n.Component.CANCEL);
         cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        Button change = new Button(I18n.CHANGE);
+        Button change = new Button(I18n.Component.CHANGE);
         change.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         HorizontalLayout container = new HorizontalLayout();
