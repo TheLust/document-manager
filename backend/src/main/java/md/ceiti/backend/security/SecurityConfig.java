@@ -68,7 +68,8 @@ public class SecurityConfig {
                                 .requestMatchers("/api/v1/institutions/**")
                                 .hasAnyAuthority(
                                         Role.INSTITUTION_MASTER.name(),
-                                        Role.INSTITUTION_USER.name()
+                                        Role.INSTITUTION_USER.name(),
+                                        Role.MASTER.name()
                                 )
                                 .requestMatchers("/api/v1/cms/**")
                                 .hasAuthority(Role.MASTER.name())

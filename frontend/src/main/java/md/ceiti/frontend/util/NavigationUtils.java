@@ -65,6 +65,10 @@ public class NavigationUtils {
         UI.getCurrent().navigate(clazz);
     }
 
+    public static void navigateTo(Class<? extends Component> clazz, RouteParameters routeParameters) {
+        UI.getCurrent().navigate(clazz, routeParameters);
+    }
+
     public static void navigateTo(String uri) {
         UI.getCurrent().navigate(uri);
     }

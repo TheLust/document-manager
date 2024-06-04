@@ -82,4 +82,12 @@ public class InstitutionDocumentController {
         institutionFacade.deleteDocument(institutionId, accountDetails.getAccount(), id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/{id}/download")
+    public ResponseEntity<byte[]> downloadDocument(@AuthenticationPrincipal AccountDetails accountDetails,
+                                                   @PathVariable Long institutionId,
+                                                   @PathVariable("id") UUID id) {
+        byte[] bytes = institutionFacade.downloadDocument(institutionId, accountDetails.getAccount(), id);
+        return ResponseEntity.ok(bytes);
+    }
 }

@@ -1,11 +1,15 @@
 package md.ceiti.frontend.component.impl;
 
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.server.StreamResource;
 import md.ceiti.frontend.component.CrudComponent;
 import md.ceiti.frontend.component.DMFormFactory;
+import md.ceiti.frontend.constant.I18n;
 import md.ceiti.frontend.dto.institution.CategoryDto;
 import md.ceiti.frontend.dto.institution.DocumentDto;
 import md.ceiti.frontend.exception.CrudException;
@@ -94,6 +98,22 @@ public class InstitutionDocumentsCrud extends VerticalLayout implements CrudComp
                 throw new CrudException();
             }
         });
+
+        GridContextMenu<DocumentDto> contextMenu = crud.getGrid().addContextMenu();
+        contextMenu.addItem(I18n.Component.DOWNLOAD, event -> event.getItem().ifPresent(item -> {
+            String fileName = item.getName() + "." + item.getExtension();
+            byte[] bytes = institutionDocumentService.download(item);
+            StreamResource streamResource = IOUtils.toStreamResource(
+                    fileName,
+                    bytes
+            );
+
+            Anchor anchor = new Anchor(streamResource, "download");
+            anchor.getElement().setAttribute("download", fileName);
+            anchor.getStyle().set("visibility", "hidden");
+            add(anchor);
+            anchor.getElement().callJsFunction("click").then(ignored -> remove(anchor));
+        }));
 
         return crud;
     }

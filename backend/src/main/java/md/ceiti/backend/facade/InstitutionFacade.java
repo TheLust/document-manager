@@ -31,8 +31,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.List;
@@ -137,6 +140,7 @@ public class InstitutionFacade {
         Account account = mapper.toEntity(accountDto);
         account.setInstitution(institution);
         account.setRole(Role.INSTITUTION_USER);
+        account.setEnabled(true);
 
         accountValidator.validate(account, bindingResult);
 
@@ -297,7 +301,7 @@ public class InstitutionFacade {
         checkAccess(institutionId, account);
 
         Document document = documentService.getById(documentId);
-        if (!Role.INSTITUTION_MASTER.equals(account.getRole())
+        if (!List.of(Role.INSTITUTION_MASTER, Role.MASTER).contains(account.getRole())
                 && !document.getCreatedBy().getId().equals(account.getId())) {
             throw new ApplicationException("You cannot update the document of another person", ErrorCodes.ACCESS_DENIED);
         }
@@ -335,6 +339,25 @@ public class InstitutionFacade {
 
         deleteDocument(document);
         documentService.delete(document);
+    }
+
+    public byte[] downloadDocument(Long institutionId,
+                                   Account account,
+                                   UUID documentId) {
+        checkAccess(institutionId, account);
+
+        Document document = documentService.getById(documentId);
+        return getDocument(document);
+    }
+
+    private byte[] getDocument(Document document) {
+        String DOCUMENT_PATH = "files/documents/%s.%s";
+        File file = new File(String.format(DOCUMENT_PATH, document.getId(), document.getExtension()));
+        try (InputStream inputStream = new FileInputStream(file)) {
+            return inputStream.readAllBytes();
+        } catch (IOException e) {
+            throw new ApplicationException("Could not get document from local storage", ErrorCodes.INTERNAL_ERROR);
+        }
     }
 
     private void saveDocument(Document document, MultipartFile multipartFile) throws IOException {
@@ -378,7 +401,7 @@ public class InstitutionFacade {
                                    boolean checkActive) {
         checkAccess(institutionId, account);
 
-        if (!Role.INSTITUTION_MASTER.equals(account.getRole())) {
+        if (!List.of(Role.INSTITUTION_MASTER, Role.MASTER).contains(account.getRole())) {
             throw new AccessDeniedException("Cannot access this resource w/o having INSTITUTION_MASTER role");
         }
 

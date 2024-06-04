@@ -59,4 +59,18 @@ public class InstitutionDocumentService extends GenericCrudService<DocumentDto> 
             return null;
         }
     }
+
+    public byte[] download(DocumentDto documentDto) {
+        try {
+            return restTemplate.exchange(
+                    endpoint + "/" + documentDto.getId() + "/download",
+                    HttpMethod.GET,
+                    ApiUtils.setHeader(JwtUtils.getJwtTokenFromCookie()),
+                    byte[].class
+            ).getBody();
+        } catch (HttpClientErrorException e) {
+            ErrorHandler.handle(e);
+            return null;
+        }
+    }
 }
