@@ -16,7 +16,6 @@ import md.ceiti.backend.service.impl.AccountService;
 import md.ceiti.backend.service.impl.InstitutionService;
 import md.ceiti.backend.validator.AccountValidator;
 import md.ceiti.backend.validator.ProfileChangePasswordRequestValidator;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
@@ -36,7 +35,6 @@ public class AccountFacade {
     private final ProfileChangePasswordRequestValidator profileChangePasswordRequestValidator;
     private final GenericMapper mapper;
     private final PasswordEncoder passwordEncoder;
-    private final JavaMailSender mailSender;
 
     public Profile getProfile(AccountDetails accountDetails) {
         return mapper.toResponse(accountDetails.getAccount());
